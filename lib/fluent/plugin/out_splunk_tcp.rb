@@ -30,7 +30,7 @@ module Fluent
 
     def write(chunk)
       chunk.msgpack_each do |_tag, time, record|
-        msg = {time: time.to_i,
+        msg = {_time: time.to_i,
                event: record.to_json}
 
         sock = TCPSocket.open(@host, @port)
