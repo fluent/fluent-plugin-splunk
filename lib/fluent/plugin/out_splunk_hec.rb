@@ -14,6 +14,10 @@ module Fluent
     config_param :source, :string, default: 'fluentd'
     config_param :sourcetype, :string, default: 'json'
 
+    ## For SSL
+    config_param :ssl_verify_peer, :bool, default: true
+    config_param :ca_file, :string, default: nil
+
     def configure(conf)
       super
     end
@@ -42,8 +46,15 @@ module Fluent
     def setup_client
       header = {'Content-type' => 'application/json',
                 'Authorization' => "Splunk #{@token}"}
+      base_url = if @ssl_verify_peer
+                   URI::HTTPS.build(host: @host, port: @port)
+                 else
+                   URI::HTTP.build(host: @host, port: @port)
+                 end
       @client = HTTPClient.new(default_header: header,
-                               base_url: URI::HTTP.build(host: @host, port: @port))
+                               base_url: base_url)
+      @client.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_PEER if @ssl_verify_peer
+      @client.ssl_config.add_trust_ca(@ca_file) if @ca_file
     end
 
     def post(body)
