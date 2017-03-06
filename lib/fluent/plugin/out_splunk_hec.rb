@@ -1,5 +1,5 @@
 require 'fluent/output'
-require 'net/http'
+require 'httpclient'
 require 'json'
 
 # http://dev.splunk.com/view/event-collector/SP-CAAAE6P
@@ -19,6 +19,7 @@ module Fluent
     end
 
     def start
+      setup_client
       super
     end
 
@@ -34,13 +35,19 @@ module Fluent
     end
 
     def write(chunk)
-      http = Net::HTTP.new(host, port)
-      req = Net::HTTP::Post.new('/services/collector')
-      req['Content-Type'] = 'application/json'
-      req['Authorization'] = "Splunk #{@token}"
+      post(chunk.read)
+    end
 
-      req.body = chunk.read
-      http.request(req)
+    private
+    def setup_client
+      header = {'Content-type' => 'application/json',
+                'Authorization' => "Splunk #{@token}"}
+      @client = HTTPClient.new(default_header: header,
+                               base_url: URI::HTTP.build(host: @host, port: @port))
+    end
+
+    def post(body)
+      @client.post('/services/collector', body)
     end
   end
 end
