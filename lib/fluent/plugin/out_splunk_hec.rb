@@ -17,6 +17,9 @@ module Fluent
     ## For SSL
     config_param :ssl_verify_peer, :bool, default: true
     config_param :ca_file, :string, default: nil
+    config_param :client_cert, :string, default: nil
+    config_param :client_key, :string, default: nil
+    config_param :client_key_pass, :string, default: nil
 
     def configure(conf)
       super
@@ -55,6 +58,7 @@ module Fluent
                                base_url: base_url)
       @client.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_PEER if @ssl_verify_peer
       @client.ssl_config.add_trust_ca(@ca_file) if @ca_file
+      @client.ssl_config.set_client_cert_file(@client_cert, @client_key, @client_key_pass) if @client_cert && @client_key
     end
 
     def post(body)
