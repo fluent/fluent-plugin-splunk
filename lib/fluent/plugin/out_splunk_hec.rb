@@ -27,23 +27,20 @@ module Fluent
     end
 
     def format(tag, time, record)
-      [tag, time, record].to_msgpack
+      msg = {time: time.to_i,
+             sourcetype: @sourcetype,
+             event: record.to_json}
+      msg.to_json + "\n"
     end
 
     def write(chunk)
-      chunk.msgpack_each do |_tag, time, record|
-        msg = {time: time.to_i,
-               event: record.to_json}
-        msg[:sourcetype] = @sourcetype
+      http = Net::HTTP.new(host, port)
+      req = Net::HTTP::Post.new('/services/collector')
+      req['Content-Type'] = 'application/json'
+      req['Authorization'] = "Splunk #{@token}"
 
-        http = Net::HTTP.new(host, port)
-        req = Net::HTTP::Post.new('/services/collector')
-        req['Content-Type'] = 'application/json'
-        req['Authorization'] = "Splunk #{@token}"
-
-        req.body = msg.to_json
-        http.request(req)
-      end
+      req.body = chunk.read
+      http.request(req)
     end
   end
 end
