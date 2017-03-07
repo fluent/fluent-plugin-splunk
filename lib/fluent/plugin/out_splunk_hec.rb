@@ -14,6 +14,7 @@ module Fluent
     config_param :source, :string, default: 'fluentd'
     config_param :sourcetype, :string, default: 'json'
 
+    ## TODO: more detailed option?
     ## For SSL
     config_param :ssl_verify_peer, :bool, default: true
     config_param :ca_file, :string, default: nil
