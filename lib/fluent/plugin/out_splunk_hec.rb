@@ -35,7 +35,9 @@ module Fluent
     end
 
     def format(tag, time, record)
-      msg = {time: time.to_i,
+      # TODO: should be done in #write and use ObjectBufferedOutput?
+      time = record['time'] || time.to_i
+      msg = {time: time,
              sourcetype: @sourcetype,
              event: record.to_json}
       msg.to_json + "\n"
