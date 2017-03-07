@@ -13,6 +13,8 @@ module Fluent
     config_param :token, :string, required: true
     config_param :source, :string, default: 'fluentd'
     config_param :sourcetype, :string, default: 'json'
+    config_param :use_ack, :bool, default: false
+    config_param :channel, :string, default: nil
 
     ## TODO: more detailed option?
     ## For SSL
@@ -23,6 +25,7 @@ module Fluent
     config_param :client_key_pass, :string, default: nil
 
     def configure(conf)
+      raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
       super
     end
 
@@ -45,13 +48,21 @@ module Fluent
     end
 
     def write(chunk)
-      post(chunk.read)
+      res = post('/services/collector', chunk.read)
+      if @use_ack
+        res_json = JSON.parse(res.body)
+        ack_id = res_json['ackId']
+        ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
+        ack_res_json = JSON.parse(ack_res.body)
+        raise "failed to index the data ack_id=#{ack_id}" unless ack_res_json['acks'][ack_id.to_s]
+      end
     end
 
     private
     def setup_client
       header = {'Content-type' => 'application/json',
                 'Authorization' => "Splunk #{@token}"}
+      header['X-Splunk-Request-Channel'] = @channel if @use_ack
       base_url = if @ssl_verify_peer
                    URI::HTTPS.build(host: @host, port: @port)
                  else
@@ -64,8 +75,8 @@ module Fluent
       @client.ssl_config.set_client_cert_file(@client_cert, @client_key, @client_key_pass) if @client_cert && @client_key
     end
 
-    def post(body)
-      @client.post('/services/collector', body)
+    def post(path, body)
+      @client.post(path, body)
     end
   end
 end
