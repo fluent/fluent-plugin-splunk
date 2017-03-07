@@ -5,7 +5,7 @@ require 'fluent/plugin/splunk/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "fluent-plugin-splunk"
-  spec.version       = Fluent::Plugin::Splunk::VERSION
+  spec.version       = "0.1.0"
   spec.authors       = ["Yuki Ito"]
   spec.email         = ["yito@treasure-data.com"]
 
