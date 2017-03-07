@@ -11,6 +11,7 @@ module Fluent
     config_param :host, :string, default: 'localhost'
     config_param :port, :integer, required: true
     config_param :source, :string, default: 'fluentd'
+    config_param :time_key, :string, default: 'time'
 
     def configure(conf)
       super
@@ -25,18 +26,18 @@ module Fluent
     end
 
     def format(tag, time, record)
-      [tag, time, record].to_msgpack
+      # TODO: should be done in #write and use ObjectBufferedOutput?
+      if record[@time_key]
+        record.to_json + "\n"
+      else
+        {@time_key => time.to_i}.merge(record).to_json + "\n"
+      end
     end
 
     def write(chunk)
-      chunk.msgpack_each do |_tag, time, record|
-        msg = {_time: time.to_i,
-               event: record.to_json}
-
-        sock = TCPSocket.open(@host, @port)
-        sock.write(msg.to_json)
-        sock.close
-      end
+      sock = TCPSocket.open(@host, @port)
+      sock.write(chunk)
+      sock.close
     end
   end
 end
