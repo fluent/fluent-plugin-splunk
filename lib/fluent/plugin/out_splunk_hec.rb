@@ -54,7 +54,14 @@ module Fluent
         res_json = JSON.parse(res.body)
         ack_id = res_json['ackId']
         ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
+        log.debug "Splunk response: #{ack_res.body}"
         ack_res_json = JSON.parse(ack_res.body)
+        unless ack_res_json['acks'][ack_id.to_s]
+          sleep(3)
+          ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
+          log.debug "Splunk response: #{ack_res.body}"
+          ack_res_json = JSON.parse(ack_res.body)
+        end
         raise "failed to index the data ack_id=#{ack_id}" unless ack_res_json['acks'][ack_id.to_s]
       end
     end
