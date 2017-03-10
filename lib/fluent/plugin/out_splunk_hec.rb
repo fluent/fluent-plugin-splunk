@@ -49,6 +49,7 @@ module Fluent
 
     def write(chunk)
       res = post('/services/collector', chunk.read)
+      log.debug "Splunk response: #{res.body}"
       if @use_ack
         res_json = JSON.parse(res.body)
         ack_id = res_json['ackId']
