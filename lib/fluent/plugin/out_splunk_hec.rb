@@ -25,8 +25,8 @@ module Fluent
     config_param :client_key_pass, :string, default: nil
 
     def configure(conf)
-      raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
       super
+      raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
     end
 
     def start
