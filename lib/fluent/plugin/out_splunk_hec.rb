@@ -10,7 +10,7 @@ module Fluent
 
     config_param :host, :string, default: 'localhost'
     config_param :port, :integer, default: 8088
-    config_param :token, :string, required: true
+    config_param :token, :string, default: nil
     config_param :source, :string, default: 'fluentd'
     config_param :sourcetype, :string, default: 'json'
     config_param :use_ack, :bool, default: false
@@ -26,6 +26,7 @@ module Fluent
 
     def configure(conf)
       super
+      raise ConfigError, "'token' parameter is required" unless @token
       raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
     end
 
