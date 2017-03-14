@@ -1,0 +1,14 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  override:
+    - ./docker.sh login
+    - docker info
+    - ./docker.sh pull 6.5.2
+
+test:
+  override:
+    - ./docker.sh run 6.5.2; sleep 10
+    - bundle exec rake coverage
