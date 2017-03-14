@@ -10,7 +10,7 @@ module Fluent
 
     config_param :host, :string, default: 'localhost'
     config_param :port, :integer, default: 8088
-    config_param :token, :string, required: true
+    config_param :token, :string, default: nil
     config_param :source, :string, default: 'fluentd'
     config_param :sourcetype, :string, default: 'json'
     config_param :use_ack, :bool, default: false
@@ -26,6 +26,7 @@ module Fluent
 
     def configure(conf)
       super
+      raise ConfigError, "'token' parameter is required" unless @token
       raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
     end
 
@@ -49,11 +50,19 @@ module Fluent
 
     def write(chunk)
       res = post('/services/collector', chunk.read)
+      log.debug "Splunk response: #{res.body}"
       if @use_ack
         res_json = JSON.parse(res.body)
         ack_id = res_json['ackId']
         ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
+        log.debug "Splunk response: #{ack_res.body}"
         ack_res_json = JSON.parse(ack_res.body)
+        unless ack_res_json['acks'][ack_id.to_s]
+          sleep(3)
+          ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
+          log.debug "Splunk response: #{ack_res.body}"
+          ack_res_json = JSON.parse(ack_res.body)
+        end
         raise "failed to index the data ack_id=#{ack_id}" unless ack_res_json['acks'][ack_id.to_s]
       end
     end
