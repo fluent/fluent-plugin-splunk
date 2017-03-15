@@ -20,13 +20,13 @@ test:
   override:
     - ./docker.sh run 6.0.14; sleep 20
     - SPLUNK_VERSION=6.0.14 bundle exec rake coverage
-    - ./docker.sh stop 6.0.14; stop 20
+    - ./docker.sh stop 6.0.14
     - ./docker.sh run 6.1.13; sleep 20
     - SPLUNK_VERSION=6.1.13 bundle exec rake coverage
-    - ./docker.sh stop 6.1.13; stop 20
+    - ./docker.sh stop 6.1.13
     - ./docker.sh run 6.2.12; sleep 20
     - SPLUNK_VERSION=6.2.12 bundle exec rake coverage
-    - ./docker.sh stop 6.2.12; stop 20
+    - ./docker.sh stop 6.2.12
     - ./docker.sh run 6.5.2; sleep 20
     - SPLUNK_VERSION=6.5.2 bundle exec rake coverage
-    - ./docker.sh stop 6.5.2; stop 20
+    - ./docker.sh stop 6.5.2
