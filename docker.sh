@@ -28,6 +28,9 @@ case "$COMMAND" in
   run)
     docker run -d ${PORTS} ${IMAGE}
     ;;
+  stop)
+    docker stop $(docker ps -q --filter ancestor=${IMAGE})
+    ;;
   debug_run)
     docker run ${PORTS} ${IMAGE_LOCAL} --debug
     ;;
@@ -37,6 +40,23 @@ case "$COMMAND" in
   push)
     docker tag ${IMAGE_LOCAL} ${IMAGE}
     docker push ${IMAGE}
+    ;;
+  load_or_pull)
+    # only for CI
+    CACHE_DIR=~/docker
+    CACHE_IMAGE=${CACHE_DIR}/image-${VERSION}.tar
+    if [ -z "${CI:-}" ]; then
+      echo "load and pull is available only on CI"
+      exit 1
+    fi
+    if [[ -e ${CACHE_IMAGE} ]]; then
+      echo "Loading golang docker image from cache"
+      docker load -i ${CACHE_IMAGE}
+    else
+      echo "Pulling golang docker image from Docker Hub"
+      docker pull ${IMAGE}
+      mkdir -p ${CACHE_DIR}; docker save -o ${CACHE_IAMGE} ${IMAGE}
+    fi
     ;;
   *)
     echo "Unkowon command"
