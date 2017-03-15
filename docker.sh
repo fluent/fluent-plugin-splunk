@@ -46,14 +46,12 @@ case "$COMMAND" in
     CACHE_DIR=~/docker
     CACHE_IMAGE=${CACHE_DIR}/image-${VERSION}.tar
     if [ -z "${CI:-}" ]; then
-      echo "load and pull is available only on CI"
+      echo "load_or_pull is available only on CI"
       exit 1
     fi
     if [[ -e ${CACHE_IMAGE} ]]; then
-      echo "Loading golang docker image from cache"
       docker load -i ${CACHE_IMAGE}
     else
-      echo "Pulling golang docker image from Docker Hub"
       docker pull ${IMAGE}
       mkdir -p ${CACHE_DIR}; docker save -o ${CACHE_IMAGE} ${IMAGE}
     fi
