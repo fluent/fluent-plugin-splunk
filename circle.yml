@@ -4,6 +4,7 @@ machine:
 
 dependencies:
   override:
+    - bundle install
     - ./docker.sh login
     - docker info
     - ./docker.sh pull 6.5.2
