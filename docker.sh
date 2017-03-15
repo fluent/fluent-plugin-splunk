@@ -55,7 +55,7 @@ case "$COMMAND" in
     else
       echo "Pulling golang docker image from Docker Hub"
       docker pull ${IMAGE}
-      mkdir -p ${CACHE_DIR}; docker save -o ${CACHE_IAMGE} ${IMAGE}
+      mkdir -p ${CACHE_DIR}; docker save -o ${CACHE_IMAGE} ${IMAGE}
     fi
     ;;
   *)
