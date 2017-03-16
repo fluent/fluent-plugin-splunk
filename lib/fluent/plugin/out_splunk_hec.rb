@@ -13,8 +13,11 @@ module Fluent
     config_param :token, :string, required: true
     config_param :source, :string, default: 'fluentd'
     config_param :sourcetype, :string, default: 'json'
+
     config_param :use_ack, :bool, default: false
     config_param :channel, :string, default: nil
+    config_param :ack_interval, :integer, default: 1
+    config_param :ack_retry_limit, :integer, default: 3
 
     ## TODO: more detailed option?
     ## For SSL
@@ -27,6 +30,7 @@ module Fluent
     def configure(conf)
       super
       raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
+      raise ConfigError, "'ack_interval' parameter must be a non negative integer" if @use_ack && @ack_interval < 0
     end
 
     def start
@@ -50,24 +54,7 @@ module Fluent
         payload << (msg.to_json + "\n")
       end
 
-      unless payload.empty?
-        res = post('/services/collector', payload)
-        log.debug "Splunk response: #{res.body}"
-        if @use_ack
-          res_json = JSON.parse(res.body)
-          ack_id = res_json['ackId']
-          ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
-          log.debug "Splunk response: #{ack_res.body}"
-          ack_res_json = JSON.parse(ack_res.body)
-          unless ack_res_json['acks'][ack_id.to_s]
-            sleep(3)
-            ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
-            log.debug "Splunk response: #{ack_res.body}"
-            ack_res_json = JSON.parse(ack_res.body)
-          end
-          raise "failed to index the data ack_id=#{ack_id}" unless ack_res_json['acks'][ack_id.to_s]
-        end
-      end
+      post_payload(payload) unless payload.empty?
     end
 
     private
@@ -85,6 +72,29 @@ module Fluent
 
     def post(path, body)
       @client.post(path, body)
+    end
+
+    def post_payload(payload)
+      res = post('/services/collector', payload)
+      log.debug "Splunk response: #{res.body}"
+      if @use_ack
+        res_json = JSON.parse(res.body)
+        ack_id = res_json['ackId']
+        check_ack(ack_id, @ack_retry_limit)
+      end
+    end
+
+    def check_ack(ack_id, retries)
+      raise "failed to index the data ack_id=#{ack_id}" if retries < 0
+
+      ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
+      ack_res_json = JSON.parse(ack_res.body)
+      if ack_res_json['acks'] && ack_res_json['acks'][ack_id.to_s]
+        return
+      else
+        sleep(@ack_interval)
+        check_ack(ack_id, retries - 1)
+      end
     end
   end
 end
