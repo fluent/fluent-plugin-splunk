@@ -29,7 +29,7 @@ test:
     - ./docker.sh stop 6.2.12
     - ./docker.sh run 6.3.9; sleep 20
     - SPLUNK_VERSION=6.3.9 bundle exec rake coverage
-    - ./docker.sh stop 6.2.9
+    - ./docker.sh stop 6.3.9
     - ./docker.sh run 6.4.6; sleep 20
     - SPLUNK_VERSION=6.4.6 bundle exec rake coverage
     - ./docker.sh stop 6.4.6
