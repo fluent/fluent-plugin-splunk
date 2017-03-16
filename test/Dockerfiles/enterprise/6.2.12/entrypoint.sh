@@ -8,10 +8,6 @@ echo OPTIMISTIC_ABOUT_FILE_LOCKING = 1 >> ${SPLUNK_HOME_SSL}/etc/splunk-launch.c
 SPLUNK_HOME=$SPLUNK_HOME_TCP sudo -HEu ${SPLUNK_USER} ${SPLUNK_HOME_TCP}/bin/splunk start --accept-license
 SPLUNK_HOME=$SPLUNK_HOME_SSL sudo -HEu ${SPLUNK_USER} ${SPLUNK_HOME_SSL}/bin/splunk start --accept-license
 
-# Add delete permission
-SPLUNK_HOME=$SPLUNK_HOME_TCP sudo -HEu ${SPLUNK_USER} ${SPLUNK_HOME_TCP}/bin/splunk edit user admin -role admin -role can_delete -auth admin:changeme
-SPLUNK_HOME=$SPLUNK_HOME_SSL sudo -HEu ${SPLUNK_USER} ${SPLUNK_HOME_SSL}/bin/splunk edit user admin -role admin -role can_delete -auth admin:changeme
-
 # Trap exit signal and shutdown gracefully
 trap "sudo -HEu ${SPLUNK_USER} ${SPLUNK_HOME_TCP}/bin/splunk stop; sudo -HEu ${SPLUNK_USER} ${SPLUNK_HOME_SSL}/bin/splunk stop" SIGINT SIGTERM EXIT
 
