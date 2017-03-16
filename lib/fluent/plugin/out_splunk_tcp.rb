@@ -55,11 +55,7 @@ module Fluent
 
     private
     def create_socket
-      if @ssl_verify_peer
-        create_ssl_socket
-      else
-        create_tcp_socket
-      end
+      @ssl_verify_peer ? create_ssl_socket : create_tcp_socket
     end
 
     def create_ssl_socket
