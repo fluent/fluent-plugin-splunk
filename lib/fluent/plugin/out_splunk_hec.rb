@@ -44,7 +44,7 @@ module Fluent
       time = record['time'] || time.to_i
       msg = {time: time,
              sourcetype: @sourcetype,
-             event: record.to_json}
+             event: record}
       msg.to_json + "\n"
     end
 
