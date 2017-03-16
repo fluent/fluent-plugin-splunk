@@ -17,7 +17,14 @@ class SplunkHECOutputTest < Test::Unit::TestCase
   end
 
   def create_driver(conf)
-    Fluent::Test::BufferedOutputTestDriver.new(Fluent::SplunkHECOutput).configure(conf)
+    Fluent::Test::BufferedOutputTestDriver.new(Fluent::SplunkHECOutput){
+      # Fluentd v0.12 BufferedOutputTestDriver calls this method.
+      # BufferedOutput#format_stream calls format method, but ForwardOutput#format is not defined.
+      # Because ObjectBufferedOutput#emit calls es.to_msgpack_stream directly.
+      def format_stream(tag, es)
+        es.to_msgpack_stream
+      end
+    }.configure(conf)
   end
 
   def get_events(port, source)

@@ -5,7 +5,7 @@ require 'json'
 # http://dev.splunk.com/view/event-collector/SP-CAAAE6P
 
 module Fluent
-  class SplunkHECOutput < BufferedOutput
+  class SplunkHECOutput < ObjectBufferedOutput
     Fluent::Plugin.register_output('splunk_hec', self)
 
     config_param :host, :string, default: 'localhost'
@@ -39,31 +39,35 @@ module Fluent
       super
     end
 
-    def format(tag, time, record)
-      # TODO: should be done in #write and use ObjectBufferedOutput?
-      time = record['time'] || time.to_i
-      msg = {time: time,
-             sourcetype: @sourcetype,
-             event: record}
-      msg.to_json + "\n"
-    end
+    def write_objects(_tag, chunk)
+      return if chunk.empty?
 
-    def write(chunk)
-      res = post('/services/collector', chunk.read)
-      log.debug "Splunk response: #{res.body}"
-      if @use_ack
-        res_json = JSON.parse(res.body)
-        ack_id = res_json['ackId']
-        ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
-        log.debug "Splunk response: #{ack_res.body}"
-        ack_res_json = JSON.parse(ack_res.body)
-        unless ack_res_json['acks'][ack_id.to_s]
-          sleep(3)
+      payload = ''
+      chunk.msgpack_each do |time, record|
+        time = record['time'] || time.to_i
+        msg = {time: time,
+               sourcetype: @sourcetype,
+               event: record}
+        payload << (msg.to_json + "\n")
+      end
+
+      unless payload.empty?
+        res = post('/services/collector', payload)
+        log.debug "Splunk response: #{res.body}"
+        if @use_ack
+          res_json = JSON.parse(res.body)
+          ack_id = res_json['ackId']
           ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
           log.debug "Splunk response: #{ack_res.body}"
           ack_res_json = JSON.parse(ack_res.body)
+          unless ack_res_json['acks'][ack_id.to_s]
+            sleep(3)
+            ack_res = post('/services/collector/ack', {'acks' => [ack_id]}.to_json)
+            log.debug "Splunk response: #{ack_res.body}"
+            ack_res_json = JSON.parse(ack_res.body)
+          end
+          raise "failed to index the data ack_id=#{ack_id}" unless ack_res_json['acks'][ack_id.to_s]
         end
-        raise "failed to index the data ack_id=#{ack_id}" unless ack_res_json['acks'][ack_id.to_s]
       end
     end
 

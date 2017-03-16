@@ -6,7 +6,7 @@ require 'json'
 # http://dev.splunk.com/view/event-collector/SP-CAAAE6P
 
 module Fluent
-  class SplunkTCPOutput < BufferedOutput
+  class SplunkTCPOutput < ObjectBufferedOutput
     Fluent::Plugin.register_output('splunk_tcp', self)
 
     config_param :host, :string, default: 'localhost'
@@ -34,19 +34,23 @@ module Fluent
       super
     end
 
-    def format(tag, time, record)
-      # TODO: should be done in #write and use ObjectBufferedOutput?
-      if record[@time_key]
-        record.to_json + "\n"
-      else
-        {@time_key => time.to_i}.merge(record).to_json + "\n"
-      end
-    end
+    def write_objects(_tag, chunk)
+      return if chunk.empty?
 
-    def write(chunk)
-      sock = create_socket
-      sock.write(chunk.read)
-      sock.close
+      payload = ''
+      chunk.msgpack_each do |time, record|
+        if record[@time_key]
+          payload << (record.to_json + "\n")
+        else
+          payload << ({@time_key => time.to_i}.merge(record).to_json + "\n")
+        end
+      end
+
+      unless payload.empty?
+        sock = create_socket
+        sock.write(payload)
+        sock.close
+      end
     end
 
     private
