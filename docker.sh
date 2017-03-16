@@ -43,12 +43,13 @@ case "$COMMAND" in
     ;;
   load_or_pull)
     # only for CI
-    CACHE_DIR=~/docker
-    CACHE_IMAGE=${CACHE_DIR}/image-${VERSION}.tar
     if [ -z "${CI:-}" ]; then
       echo "load_or_pull is available only on CI"
       exit 1
     fi
+
+    CACHE_DIR=~/docker
+    CACHE_IMAGE=${CACHE_DIR}/image-${VERSION}.tar
     if [[ -e ${CACHE_IMAGE} ]]; then
       docker load -i ${CACHE_IMAGE}
     else
