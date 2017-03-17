@@ -55,7 +55,8 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     assert_equal 'localhost', d.instance.host
     assert_equal 8088, d.instance.port
     assert_equal '00000000-0000-0000-0000-000000000000', d.instance.token
-    assert_equal nil, d.instance.source
+    assert_equal nil, d.instance.default_source
+    assert_equal nil, d.instance.source_key
     assert_equal 'time', d.instance.time_key
     assert_equal false, d.instance.use_ack
     assert_equal nil, d.instance.channel
@@ -68,11 +69,18 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     assert_equal nil, d.instance.client_key_pass
   end
 
+  ## These are specified in the target Splunk's config
+  DEFAULT_SOURCE_FOR_NO_ACK = "http:FluentTestNoAck"
+  DEFAULT_SOURCE_FOR_ACK = "http:FluentTestAck"
+
   sub_test_case 'HTTP' do
     teardown do
-      query(8089, {'search' => 'search source="http:FluentTestNoAck" | delete'})
-      query(8089, {'search' => 'search source="http:FluentTestAck" | delete'})
+      query(8089, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\" | delete"})
+      query(8089, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_ACK}\" | delete"})
+      query(8089, {'search' => 'search source="DefaultSourceTest" | delete'})
+      query(8089, {'search' => 'search source="SourceKeyTest" | delete'})
     end
+
 
     if SPLUNK_VERSION >= to_version('6.3.0')
       test 'use_ack = false' do
@@ -90,6 +98,108 @@ class SplunkHECOutputTest < Test::Unit::TestCase
         d.run
         sleep(3)
         result = get_events(8089, 'http:FluentTestNoAck')[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'default_source' do
+        config = %[
+          host 127.0.0.1
+          port 8088
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer false
+          default_source DefaultSourceTest
+        ]
+        d = create_driver(config)
+        event = {'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8089, 'DefaultSourceTest')[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'source_key is found' do
+        config = %[
+          host 127.0.0.1
+          port 8088
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer false
+          source_key key_for_source
+        ]
+        d = create_driver(config)
+        event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8089, 'SourceKeyTest')[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'source_key is not found' do
+        config = %[
+          host 127.0.0.1
+          port 8088
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer false
+          source_key key_for_source
+        ]
+        d = create_driver(config)
+        event = {'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8089, DEFAULT_SOURCE_FOR_NO_ACK)[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'both default_source and source_key when source_key is found' do
+        config = %[
+          host 127.0.0.1
+          port 8088
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer false
+          default_source DefaultSourceTest
+          source_key key_for_source
+        ]
+        d = create_driver(config)
+        event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8089, 'SourceKeyTest')[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'both default_source and source_key when source_key is not found' do
+        config = %[
+          host 127.0.0.1
+          port 8088
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer false
+          default_source DefaultSourceTest
+          source_key key_for_source
+        ]
+        d = create_driver(config)
+        event = {'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8089, 'DefaultSourceTest')[0]
         assert_equal(time, result['result']['_time'].to_i)
         assert_equal(event, JSON.parse(result['result']['_raw']))
       end
@@ -119,8 +229,10 @@ class SplunkHECOutputTest < Test::Unit::TestCase
 
   sub_test_case 'HTTPS' do
     teardown do
-      query(8289, {'search' => 'search source="http:FluentTestNoAck" | delete'})
-      query(8289, {'search' => 'search source="http:FluentTestAck" | delete'})
+      query(8289, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\" | delete"})
+      query(8289, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_ACK}\" | delete"})
+      query(8289, {'search' => 'search source="DefaultSourceTest" | delete'})
+      query(8289, {'search' => 'search source="SourceKeyTest" | delete'})
     end
 
     if SPLUNK_VERSION >= to_version('6.3.0')
@@ -142,6 +254,123 @@ class SplunkHECOutputTest < Test::Unit::TestCase
         d.run
         sleep(3)
         result = get_events(8289, 'http:FluentTestNoAck')[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'default_source' do
+        config = %[
+          host 127.0.0.1
+          port 8288
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer true
+          ca_file #{cert_dir('cacert.pem')}
+          client_cert #{cert_dir('client.pem')}
+          client_key #{cert_dir('client.key')}
+          default_source DefaultSourceTest
+        ]
+        d = create_driver(config)
+        event = {'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8289, 'DefaultSourceTest')[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'source_key is found' do
+        config = %[
+          host 127.0.0.1
+          port 8288
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer true
+          ca_file #{cert_dir('cacert.pem')}
+          client_cert #{cert_dir('client.pem')}
+          client_key #{cert_dir('client.key')}
+          source_key key_for_source
+        ]
+        d = create_driver(config)
+        event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8289, 'SourceKeyTest')[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'source_key is not found' do
+        config = %[
+          host 127.0.0.1
+          port 8288
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer true
+          ca_file #{cert_dir('cacert.pem')}
+          client_cert #{cert_dir('client.pem')}
+          client_key #{cert_dir('client.key')}
+          source_key key_for_source
+        ]
+        d = create_driver(config)
+        event = {'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8289, DEFAULT_SOURCE_FOR_NO_ACK)[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'both default_source and source_key when source_key is found' do
+        config = %[
+          host 127.0.0.1
+          port 8288
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer true
+          ca_file #{cert_dir('cacert.pem')}
+          client_cert #{cert_dir('client.pem')}
+          client_key #{cert_dir('client.key')}
+          default_source DefaultSourceTest
+          source_key key_for_source
+        ]
+        d = create_driver(config)
+        event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8289, 'SourceKeyTest')[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
+      end
+
+      test 'both default_source and source_key when source_key is not found' do
+        config = %[
+          host 127.0.0.1
+          port 8288
+          token 00000000-0000-0000-0000-000000000000
+          use_ack false
+          ssl_verify_peer true
+          ca_file #{cert_dir('cacert.pem')}
+          client_cert #{cert_dir('client.pem')}
+          client_key #{cert_dir('client.key')}
+          default_source DefaultSourceTest
+          source_key key_for_source
+        ]
+        d = create_driver(config)
+        event = {'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(8289, 'DefaultSourceTest')[0]
         assert_equal(time, result['result']['_time'].to_i)
         assert_equal(event, JSON.parse(result['result']['_raw']))
       end

@@ -11,7 +11,8 @@ module Fluent
     config_param :host, :string, default: 'localhost'
     config_param :port, :integer, default: 8088
     config_param :token, :string, required: true
-    config_param :source, :string, default: nil
+    config_param :default_source, :string, default: nil
+    config_param :source_key, :string, default: nil
     config_param :time_key, :string, default: 'time'
 
     config_param :use_ack, :bool, default: false
@@ -48,9 +49,14 @@ module Fluent
       payload = ''
       chunk.msgpack_each do |time, record|
         time = record[@time_key] || time.to_i
-        msg = {time: time,
-               sourcetype: 'json',
-               event: record}
+        msg = {'time' => time,
+               'sourcetype' => 'json',
+               'event' => record}
+        if record[@source_key]
+          msg['source'] = record[@source_key]
+        elsif @default_source
+          msg['source'] = @default_source
+        end
         payload << (msg.to_json + "\n")
       end
 
