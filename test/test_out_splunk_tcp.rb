@@ -15,7 +15,11 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
   def teardown
   end
 
-  def create_driver(conf)
+  CONFIG = %[
+    port 8089
+  ]
+
+  def create_driver(conf = CONFIG)
     Fluent::Test::BufferedOutputTestDriver.new(Fluent::SplunkTCPOutput){
       # Fluentd v0.12 BufferedOutputTestDriver calls this method.
       # BufferedOutput#format_stream calls format method, but ForwardOutput#format is not defined.
@@ -43,6 +47,19 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
     req.basic_auth('admin', 'changeme')
     req.set_form_data(q.merge({'output_mode' => 'json', 'time_format' => '%s'}))
     http.request(req).body.split("\n").map{|line| JSON.parse(line)}.delete_if{|json| json['lastrow']}
+  end
+
+  test 'configure' do
+    d = create_driver
+    assert_equal 'localhost', d.instance.host
+    assert_equal 8089, d.instance.port
+    assert_equal nil, d.instance.source
+    assert_equal 'time', d.instance.time_key
+    assert_equal false, d.instance.ssl_verify_peer
+    assert_equal nil, d.instance.ca_file
+    assert_equal nil, d.instance.client_cert
+    assert_equal nil, d.instance.client_key
+    assert_equal nil, d.instance.client_key_pass
   end
 
   sub_test_case 'TCP' do
