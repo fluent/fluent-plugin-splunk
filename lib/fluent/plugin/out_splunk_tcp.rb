@@ -11,12 +11,12 @@ module Fluent
 
     config_param :host, :string, default: 'localhost'
     config_param :port, :integer, required: true
-    config_param :source, :string, default: 'fluentd'
+    config_param :source, :string, default: nil
     config_param :time_key, :string, default: 'time'
 
     ## TODO: more detailed option?
     ## For SSL
-    config_param :ssl_verify_peer, :bool, default: true
+    config_param :ssl_verify_peer, :bool, default: false
     config_param :ca_file, :string, default: nil
     config_param :client_cert, :string, default: nil
     config_param :client_key, :string, default: nil

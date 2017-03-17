@@ -11,8 +11,7 @@ module Fluent
     config_param :host, :string, default: 'localhost'
     config_param :port, :integer, default: 8088
     config_param :token, :string, required: true
-    config_param :source, :string, default: 'fluentd'
-    config_param :sourcetype, :string, default: 'json'
+    config_param :source, :string, default: nil
     config_param :time_key, :string, default: 'time'
 
     config_param :use_ack, :bool, default: false
@@ -22,7 +21,7 @@ module Fluent
 
     ## TODO: more detailed option?
     ## For SSL
-    config_param :ssl_verify_peer, :bool, default: true
+    config_param :ssl_verify_peer, :bool, default: false
     config_param :ca_file, :string, default: nil
     config_param :client_cert, :string, default: nil
     config_param :client_key, :string, default: nil
@@ -50,7 +49,7 @@ module Fluent
       chunk.msgpack_each do |time, record|
         time = record[@time_key] || time.to_i
         msg = {time: time,
-               sourcetype: @sourcetype,
+               sourcetype: 'json',
                event: record}
         payload << (msg.to_json + "\n")
       end
