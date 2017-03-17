@@ -62,52 +62,37 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
     assert_equal nil, d.instance.client_key_pass
   end
 
-  sub_test_case 'TCP' do
-    teardown do
-      query(8089, {'search' => 'search source="tcp:12300" | delete'})
-    end
+  ## I just wanna run same test code for HTTP and HTTPS...
+  [{sub_test_case_name: 'TCP', query_port: 8089, server_port: 12300, config: %[
+                                                                               host 127.0.0.1
+                                                                               port 12300
+                                                                               ssl_verify_peer false
+                                                                             ]},
+   {sub_test_case_name: 'SSL', query_port: 8289, server_port: 12500, config: %[
+                                                                               host 127.0.0.1
+                                                                               port 12500
+                                                                               ssl_verify_peer true
+                                                                               ca_file #{File.expand_path('../cert/cacert.pem', __FILE__)}
+                                                                               client_cert #{File.expand_path('../cert/client.pem', __FILE__)}
+                                                                               client_key #{File.expand_path('../cert/client.key', __FILE__)}
+                                                                             ]}
+  ].each do |test_config|
+    sub_test_case test_config[:sub_test_case_name] do
+      teardown do
+        query(test_config[:query_port], {'search' => 'search source="tcp:12300" | delete'})
+      end
 
-    test 'emit' do
-      config = %[
-        host 127.0.0.1
-        port 12300
-        ssl_verify_peer false
-      ]
-      d = create_driver(config)
-      event = {'test' => SecureRandom.hex}
-      time = Time.now.to_i
-      d.emit(event, time)
-      d.run
-      sleep(3)
-      result = get_events(8089, 'tcp:12300')[0]
-      assert_equal(time, result['result']['_time'].to_i)
-      assert_equal(event.merge({'time' => time}), JSON.parse(result['result']['_raw']))
-    end
-  end
-
-  sub_test_case 'SSL' do
-    teardown do
-      query(8289, {'search' => 'search source="tcp:12500" | delete'})
-    end
-
-    test 'emit' do
-      config = %[
-        host 127.0.0.1
-        port 12500
-        ssl_verify_peer true
-        ca_file #{cert_dir('cacert.pem')}
-        client_cert #{cert_dir('client.pem')}
-        client_key #{cert_dir('client.key')}
-      ]
-      d = create_driver(config)
-      event = {'test' => SecureRandom.hex}
-      time = Time.now.to_i
-      d.emit(event, time)
-      d.run
-      sleep(3)
-      result = get_events(8289, 'tcp:12500')[0]
-      assert_equal(time, result['result']['_time'].to_i)
-      assert_equal(event.merge({'time' => time}), JSON.parse(result['result']['_raw']))
+      test 'emit' do
+        d = create_driver(test_config[:config])
+        event = {'test' => SecureRandom.hex}
+        time = Time.now.to_i
+        d.emit(event, time)
+        d.run
+        sleep(3)
+        result = get_events(test_config[:query_port], "tcp:#{test_config[:server_port]}")[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event.merge({'time' => time}), JSON.parse(result['result']['_raw']))
+      end
     end
   end
 end
