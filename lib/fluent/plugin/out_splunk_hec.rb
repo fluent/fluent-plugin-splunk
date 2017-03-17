@@ -13,6 +13,7 @@ module Fluent
     config_param :token, :string, required: true
     config_param :source, :string, default: 'fluentd'
     config_param :sourcetype, :string, default: 'json'
+    config_param :time_key, :string, default: 'time'
 
     config_param :use_ack, :bool, default: false
     config_param :channel, :string, default: nil
@@ -47,7 +48,7 @@ module Fluent
 
       payload = ''
       chunk.msgpack_each do |time, record|
-        time = record['time'] || time.to_i
+        time = record[@time_key] || time.to_i
         msg = {time: time,
                sourcetype: @sourcetype,
                event: record}
