@@ -35,10 +35,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     query(port, {'search' => "search source=\"#{source}\""})
   end
 
-  def cert_dir(file)
-    File.expand_path(File.join('../cert', file), __FILE__)
-  end
-
   def query(port, q)
     uri = URI.parse("https://127.0.0.1:#{port}/services/search/jobs/export")
     http = Net::HTTP.new(uri.host, uri.port)
@@ -73,330 +69,156 @@ class SplunkHECOutputTest < Test::Unit::TestCase
   DEFAULT_SOURCE_FOR_NO_ACK = "http:FluentTestNoAck"
   DEFAULT_SOURCE_FOR_ACK = "http:FluentTestAck"
 
-  sub_test_case 'HTTP' do
-    teardown do
-      query(8089, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\" | delete"})
-      query(8089, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_ACK}\" | delete"})
-      query(8089, {'search' => 'search source="DefaultSourceTest" | delete'})
-      query(8089, {'search' => 'search source="SourceKeyTest" | delete'})
-    end
+  DEFAULT_CONFIG_NO_ACK = %[
+    host 127.0.0.1
+    token 00000000-0000-0000-0000-000000000000
+    use_ack false
+  ]
 
+  ## need channel option too
+  DEFAULT_CONFIG_ACK = %[
+    host 127.0.0.1
+    token 00000000-0000-0000-0000-000000000001
+    use_ack true
+  ]
 
-    if SPLUNK_VERSION >= to_version('6.3.0')
-      test 'use_ack = false' do
-        config = %[
-          host 127.0.0.1
-          port 8088
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer false
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8089, 'http:FluentTestNoAck')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-
-      test 'default_source' do
-        config = %[
-          host 127.0.0.1
-          port 8088
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer false
-          default_source DefaultSourceTest
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8089, 'DefaultSourceTest')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-
-      test 'source_key is found' do
-        config = %[
-          host 127.0.0.1
-          port 8088
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer false
-          source_key key_for_source
-        ]
-        d = create_driver(config)
-        event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8089, 'SourceKeyTest')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-
-      test 'source_key is not found' do
-        config = %[
-          host 127.0.0.1
-          port 8088
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer false
-          source_key key_for_source
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8089, DEFAULT_SOURCE_FOR_NO_ACK)[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-
-      test 'both default_source and source_key when source_key is found' do
-        config = %[
-          host 127.0.0.1
-          port 8088
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer false
-          default_source DefaultSourceTest
-          source_key key_for_source
-        ]
-        d = create_driver(config)
-        event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8089, 'SourceKeyTest')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-
-      test 'both default_source and source_key when source_key is not found' do
-        config = %[
-          host 127.0.0.1
-          port 8088
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer false
-          default_source DefaultSourceTest
-          source_key key_for_source
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8089, 'DefaultSourceTest')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-    end
-
-    if SPLUNK_VERSION >= to_version('6.4.0')
-      test 'use_ack = true' do
-        config = %[
-          host 127.0.0.1
-          port 8088
-          token 00000000-0000-0000-0000-000000000001
-          channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
-          use_ack true
-          ssl_verify_peer false
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        result = get_events(8089, 'http:FluentTestAck')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-    end
+  def self.merge_config(config1, config2)
+    [config1, config2].join("\n")
   end
 
-  sub_test_case 'HTTPS' do
-    teardown do
-      query(8289, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\" | delete"})
-      query(8289, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_ACK}\" | delete"})
-      query(8289, {'search' => 'search source="DefaultSourceTest" | delete'})
-      query(8289, {'search' => 'search source="SourceKeyTest" | delete'})
-    end
+  def merge_config(config1, config2)
+    self.class.merge_config(config1, config2)
+  end
 
-    if SPLUNK_VERSION >= to_version('6.3.0')
-      test 'use_ack = false' do
-        config = %[
-          host 127.0.0.1
-          port 8288
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer true
-          ca_file #{cert_dir('cacert.pem')}
-          client_cert #{cert_dir('client.pem')}
-          client_key #{cert_dir('client.key')}
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8289, 'http:FluentTestNoAck')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
+  ## I just wanna run same test code for HTTP and HTTPS...
+  [{sub_test_case_name: 'HTTP', query_port: 8089, config: %[
+                                                            port 8088
+                                                            ssl_verify_peer false
+                                                          ]},
+   {sub_test_case_name: 'HTTPS', query_port: 8289, config: %[
+                                                            port 8288
+                                                            ssl_verify_peer true
+                                                            ca_file #{File.expand_path('../cert/cacert.pem', __FILE__)}
+                                                            client_cert #{File.expand_path('../cert/client.pem', __FILE__)}
+                                                            client_key #{File.expand_path('../cert/client.key', __FILE__)}
+                                                            ]}
+  ].each do |test_config|
+    test_config[:default_config_no_ack] = merge_config(test_config[:config], DEFAULT_CONFIG_NO_ACK)
+    test_config[:default_config_ack] = merge_config(test_config[:config], DEFAULT_CONFIG_ACK)
+
+    sub_test_case test_config[:sub_test_case_name] do
+      teardown do
+        query(test_config[:query_port], {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\" | delete"})
+        query(test_config[:query_port], {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_ACK}\" | delete"})
+        query(test_config[:query_port], {'search' => 'search source="DefaultSourceTest" | delete'})
+        query(test_config[:query_port], {'search' => 'search source="SourceKeyTest" | delete'})
       end
 
-      test 'default_source' do
-        config = %[
-          host 127.0.0.1
-          port 8288
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer true
-          ca_file #{cert_dir('cacert.pem')}
-          client_cert #{cert_dir('client.pem')}
-          client_key #{cert_dir('client.key')}
-          default_source DefaultSourceTest
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8289, 'DefaultSourceTest')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
+      if SPLUNK_VERSION >= to_version('6.3.0')
+        test 'use_ack = false' do
+          d = create_driver(test_config[:default_config_no_ack])
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'http:FluentTestNoAck')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'default_source' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_source DefaultSourceTest
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'DefaultSourceTest')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'source_key is found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            source_key key_for_source
+          ])
+          d = create_driver(config)
+          event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'SourceKeyTest')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'source_key is not found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            source_key key_for_source
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], DEFAULT_SOURCE_FOR_NO_ACK)[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'both default_source and source_key when source_key is found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_source DefaultSourceTest
+            source_key key_for_source
+          ])
+          d = create_driver(config)
+          event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'SourceKeyTest')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'both default_source and source_key when source_key is not found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_source DefaultSourceTest
+            source_key key_for_source
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'DefaultSourceTest')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
       end
 
-      test 'source_key is found' do
-        config = %[
-          host 127.0.0.1
-          port 8288
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer true
-          ca_file #{cert_dir('cacert.pem')}
-          client_cert #{cert_dir('client.pem')}
-          client_key #{cert_dir('client.key')}
-          source_key key_for_source
-        ]
-        d = create_driver(config)
-        event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8289, 'SourceKeyTest')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-
-      test 'source_key is not found' do
-        config = %[
-          host 127.0.0.1
-          port 8288
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer true
-          ca_file #{cert_dir('cacert.pem')}
-          client_cert #{cert_dir('client.pem')}
-          client_key #{cert_dir('client.key')}
-          source_key key_for_source
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8289, DEFAULT_SOURCE_FOR_NO_ACK)[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-
-      test 'both default_source and source_key when source_key is found' do
-        config = %[
-          host 127.0.0.1
-          port 8288
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer true
-          ca_file #{cert_dir('cacert.pem')}
-          client_cert #{cert_dir('client.pem')}
-          client_key #{cert_dir('client.key')}
-          default_source DefaultSourceTest
-          source_key key_for_source
-        ]
-        d = create_driver(config)
-        event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8289, 'SourceKeyTest')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-
-      test 'both default_source and source_key when source_key is not found' do
-        config = %[
-          host 127.0.0.1
-          port 8288
-          token 00000000-0000-0000-0000-000000000000
-          use_ack false
-          ssl_verify_peer true
-          ca_file #{cert_dir('cacert.pem')}
-          client_cert #{cert_dir('client.pem')}
-          client_key #{cert_dir('client.key')}
-          default_source DefaultSourceTest
-          source_key key_for_source
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        sleep(3)
-        result = get_events(8289, 'DefaultSourceTest')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
-      end
-    end
-
-    if SPLUNK_VERSION >= to_version('6.4.0')
-      test 'use_ack = true' do
-        config = %[
-          host 127.0.0.1
-          port 8288
-          token 00000000-0000-0000-0000-000000000001
-          channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
-          use_ack true
-          ssl_verify_peer true
-          ca_file #{cert_dir('cacert.pem')}
-          client_cert #{cert_dir('client.pem')}
-          client_key #{cert_dir('client.key')}
-        ]
-        d = create_driver(config)
-        event = {'test' => SecureRandom.hex}
-        time = Time.now.to_i
-        d.emit(event, time)
-        d.run
-        result = get_events(8289, 'http:FluentTestAck')[0]
-        assert_equal(time, result['result']['_time'].to_i)
-        assert_equal(event, JSON.parse(result['result']['_raw']))
+      if SPLUNK_VERSION >= to_version('6.4.0')
+        test 'use_ack = true' do
+          config = merge_config(test_config[:default_config_ack], %[
+            channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          result = get_events(test_config[:query_port], 'http:FluentTestAck')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
       end
     end
   end
