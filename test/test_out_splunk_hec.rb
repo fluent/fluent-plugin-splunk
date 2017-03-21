@@ -420,7 +420,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
 
       if SPLUNK_VERSION >= to_version('6.4.0')
         sub_test_case 'raw' do
-          test 'with options' do
+          test 'with metadata' do
             config = merge_config(test_config[:default_config_no_ack], %[
               raw true
               channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
@@ -447,7 +447,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             assert_equal(event, JSON.parse(result['result']['_raw']))
           end
 
-          test 'batched data with options' do
+          test 'batched data with metadata' do
             config = merge_config(test_config[:default_config_no_ack], %[
               raw true
               channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
@@ -484,7 +484,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             assert_equal(event0, JSON.parse(events[1]['result']['_raw']))
           end
 
-          test 'without options' do
+          test 'without metadata' do
             config = merge_config(test_config[:default_config_no_ack], %[
               raw true
               channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
