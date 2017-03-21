@@ -17,6 +17,7 @@ module Fluent
     config_param :source_key, :string, default: nil
     config_param :default_index, :string, default: nil
     config_param :index_key, :string, default: nil
+    config_param :sourcetype, :string, default: nil
 
     # for Indexer acknowledgement
     config_param :use_ack, :bool, default: false
@@ -53,10 +54,11 @@ module Fluent
       payload = ''
       chunk.msgpack_each do |time, record|
         msg = {'time' => time,
-               'sourcetype' => 'json',
                'event' => record}
 
         # metadata
+        msg['sourcetype'] = @sourcetype if @sourcetype
+
         if record[@source_key]
           msg['source'] = record[@source_key]
         elsif @default_source

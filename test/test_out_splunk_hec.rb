@@ -56,6 +56,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     assert_equal nil, d.instance.source_key
     assert_equal nil, d.instance.default_index
     assert_equal nil, d.instance.index_key
+    assert_equal nil, d.instance.sourcetype
     assert_equal false, d.instance.use_ack
     assert_equal nil, d.instance.channel
     assert_equal 1, d.instance.ack_interval
@@ -282,6 +283,22 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           sleep(3)
           result = get_events(test_config[:query_port], 'index="default_index_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'source_type = sourcetype_test' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            sourcetype sourcetype_test
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal('sourcetype_test', result['result']['_sourcetype'])
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
       end
