@@ -417,6 +417,92 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
       end
+
+      if SPLUNK_VERSION >= to_version('6.4.0')
+        sub_test_case 'raw' do
+          test 'with options' do
+            config = merge_config(test_config[:default_config_no_ack], %[
+              raw true
+              channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
+              event_key splunk_event
+              sourcetype fluentd
+              default_host default_host_test
+              default_source DefaultSourceTest
+              default_index default_index_test
+            ])
+
+            d = create_driver(config)
+            time = Time.now.to_i
+            event = {'time' => time, 'msg' => 'msg'}
+            record = {'splunk_event' => event.to_json}
+            d.emit(record, time)
+            d.run
+            sleep(3)
+            result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
+            assert_equal(time, result['result']['_time'].to_i)
+            assert_equal('fluentd', result['result']['sourcetype'])
+            assert_equal('default_host_test', result['result']['host'])
+            assert_equal('DefaultSourceTest', result['result']['source'])
+            assert_equal('default_index_test', result['result']['index'])
+            assert_equal(event, JSON.parse(result['result']['_raw']))
+          end
+
+          test 'batched data with options' do
+            config = merge_config(test_config[:default_config_no_ack], %[
+              raw true
+              channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
+              event_key splunk_event
+              sourcetype fluentd
+              default_host default_host_test
+              default_source DefaultSourceTest
+              default_index default_index_test
+            ])
+
+            d = create_driver(config)
+            time0 = Time.now.to_i
+            event0 = {'time' => time0, 'msg' => 'msg0'}
+            record0 = {'splunk_event' => event0.to_json}
+            time1 = Time.now.to_i
+            event1 = {'time' => time1, 'msg' => 'msg1'}
+            record1 = {'splunk_event' => event1.to_json}
+            d.emit(record0, time0)
+            d.emit(record1, time0)
+            d.run
+            sleep(3)
+            events = get_events(test_config[:query_port], 'source="DefaultSourceTest"')
+            assert_equal(time1, events[0]['result']['_time'].to_i)
+            assert_equal('fluentd', events[0]['result']['sourcetype'])
+            assert_equal('default_host_test', events[0]['result']['host'])
+            assert_equal('DefaultSourceTest', events[0]['result']['source'])
+            assert_equal('default_index_test', events[0]['result']['index'])
+            assert_equal(event1, JSON.parse(events[0]['result']['_raw']))
+            assert_equal(time0, events[1]['result']['_time'].to_i)
+            assert_equal('fluentd', events[1]['result']['sourcetype'])
+            assert_equal('default_host_test', events[1]['result']['host'])
+            assert_equal('DefaultSourceTest', events[1]['result']['source'])
+            assert_equal('default_index_test', events[1]['result']['index'])
+            assert_equal(event0, JSON.parse(events[1]['result']['_raw']))
+          end
+
+          test 'without options' do
+            config = merge_config(test_config[:default_config_no_ack], %[
+              raw true
+              channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
+              event_key splunk_event
+            ])
+
+            d = create_driver(config)
+            time = Time.now.to_i
+            event = {'time' => time, 'msg' => 'msg'}
+            record = {'splunk_event' => event.to_json}
+            d.emit(record, time)
+            d.run
+            sleep(3)
+            result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
+            assert_equal(event, JSON.parse(result['result']['_raw']))
+          end
+        end
+      end
     end
   end
 end

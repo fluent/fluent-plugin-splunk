@@ -35,10 +35,25 @@ module Fluent
     config_param :client_key, :string, default: nil
     config_param :client_key_pass, :string, default: nil
 
+    # for raw events
+    config_param :raw, :bool, default: false
+    config_param :event_key, :string, default: nil
+
     def configure(conf)
       super
       raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
       raise ConfigError, "'ack_interval' parameter must be a non negative integer" if @use_ack && @ack_interval < 0
+      raise ConfigError, "'event_key' parameter is required when 'raw' is true" if @raw && !@event_key
+      raise ConfigError, "'channel' parameter is required when 'raw' is true" if @raw && !@channel
+
+      # build hash for query string
+      if @raw
+        @query = {}
+        @query['host'] = @default_host if @default_host
+        @query['source'] = @default_source if @default_source
+        @query['index'] = @default_index if @default_index
+        @query['sourcetype'] = @sourcetype if @sourcetype
+      end
     end
 
     def start
@@ -55,33 +70,8 @@ module Fluent
 
       payload = ''
       chunk.msgpack_each do |time, record|
-        msg = {'time' => time,
-               'event' => record}
-
-        # metadata
-        msg['sourcetype'] = @sourcetype if @sourcetype
-
-        if record[@host_key]
-          msg['host'] = record[@host_key]
-        elsif @default_host
-          msg['host'] = @default_host
-        end
-
-        if record[@source_key]
-          msg['source'] = record[@source_key]
-        elsif @default_source
-          msg['source'] = @default_source
-        end
-
-        if record[@index_key]
-          msg['index'] = record[@index_key]
-        elsif @default_index
-          msg['index'] = @default_index
-        end
-
-        payload << (msg.to_json + "\n")
+        payload << (@raw ? format_event_raw(record) : format_event(time, record))
       end
-
       post_payload(payload) unless payload.empty?
     end
 
@@ -89,7 +79,7 @@ module Fluent
     def setup_client
       header = {'Content-type' => 'application/json',
                 'Authorization' => "Splunk #{@token}"}
-      header['X-Splunk-Request-Channel'] = @channel if @use_ack
+      header['X-Splunk-Request-Channel'] = @channel if @channel
       base_url = @ssl_verify_peer ? URI::HTTPS.build(host: @host, port: @port) : URI::HTTP.build(host: @host, port: @port)
       @client = HTTPClient.new(default_header: header,
                                base_url: base_url)
@@ -98,12 +88,50 @@ module Fluent
       @client.ssl_config.set_client_cert_file(@client_cert, @client_key, @client_key_pass) if @client_cert && @client_key
     end
 
-    def post(path, body)
-      @client.post(path, body)
+    def format_event(time, record)
+      event = @event_key ? (record[@event_key] || '') : record
+      msg = {'time' => time,
+             'event' => event}
+
+      # metadata
+      msg['sourcetype'] = @sourcetype if @sourcetype
+
+      if record[@host_key]
+        msg['host'] = record[@host_key]
+      elsif @default_host
+        msg['host'] = @default_host
+      end
+
+      if record[@source_key]
+        msg['source'] = record[@source_key]
+      elsif @default_source
+        msg['source'] = @default_source
+      end
+
+      if record[@index_key]
+        msg['index'] = record[@index_key]
+      elsif @default_index
+        msg['index'] = @default_index
+      end
+
+      msg.to_json + "\n"
+    end
+
+    def format_event_raw(record)
+      (record[@event_key] || '') + "\n"
+    end
+
+    def post(path, body, query = {})
+      @client.post(path, body: body, query: query)
     end
 
     def post_payload(payload)
-      res = post('/services/collector', payload)
+      res = nil
+      if @raw
+        res = post('/services/collector/raw', payload, @query)
+      else
+        res = post('/services/collector', payload)
+      end
       log.debug "Splunk response: #{res.body}"
       if @use_ack
         res_json = JSON.parse(res.body)
