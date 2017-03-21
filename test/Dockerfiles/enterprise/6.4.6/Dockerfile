@@ -49,6 +49,7 @@ RUN apt-get install -y wget sudo \
 # etc_tcp/apps/splunk_httpinput/local/inputs.conf
 ## system config
 # etc/system/local/server.conf
+# etc/system/local/indexes.conf
 
 ### SSL
 ## TCP raw
@@ -60,6 +61,7 @@ RUN apt-get install -y wget sudo \
 # etc/auth/cacert.pem
 ## system config
 # etc/system/local/server.conf
+# etc/system/local/indexes.conf
 # etc/system/local/web.conf
 
 COPY etc_tcp/apps/splunk_httpinput/local/inputs.conf ${SPLUNK_HOME_TCP}/etc/apps/splunk_httpinput/local/inputs.conf
@@ -74,7 +76,9 @@ COPY etc_ssl/auth/server.pem ${SPLUNK_HOME_SSL}/etc/auth/server.pem
 COPY etc_ssl/auth/cacert.pem ${SPLUNK_HOME_SSL}/etc/auth/cacert.pem
 
 COPY etc_tcp/system/local/server.conf ${SPLUNK_HOME_TCP}/etc/system/local/server.conf
+COPY etc_tcp/system/local/indexes.conf ${SPLUNK_HOME_TCP}/etc/system/local/indexes.conf
 COPY etc_ssl/system/local/server.conf ${SPLUNK_HOME_SSL}/etc/system/local/server.conf
+COPY etc_ssl/system/local/indexes.conf ${SPLUNK_HOME_SSL}/etc/system/local/indexes.conf
 COPY etc_ssl/system/local/web.conf ${SPLUNK_HOME_SSL}/etc/system/local/web.conf
 
 COPY entrypoint.sh /sbin/entrypoint.sh
