@@ -56,7 +56,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     assert_equal nil, d.instance.source_key
     assert_equal nil, d.instance.default_index
     assert_equal nil, d.instance.index_key
-    assert_equal 'time', d.instance.time_key
     assert_equal false, d.instance.use_ack
     assert_equal nil, d.instance.channel
     assert_equal 1, d.instance.ack_interval
