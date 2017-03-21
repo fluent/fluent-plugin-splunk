@@ -39,6 +39,9 @@ module Fluent
     config_param :raw, :bool, default: false
     config_param :event_key, :string, default: nil
 
+    # for raw=false and event_key
+    config_param :use_fluentd_time, :bool, default: false
+
     def configure(conf)
       super
       raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
@@ -90,8 +93,8 @@ module Fluent
 
     def format_event(time, record)
       event = @event_key ? (record[@event_key] || '') : record
-      msg = {'time' => time,
-             'event' => event}
+      msg = {'event' => event}
+      msg['time'] = time unless @event_key && !@use_fluentd_time
 
       # metadata
       msg['sourcetype'] = @sourcetype if @sourcetype
