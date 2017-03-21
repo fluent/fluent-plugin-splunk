@@ -13,6 +13,8 @@ module Fluent
     config_param :token, :string, required: true
     config_param :default_source, :string, default: nil
     config_param :source_key, :string, default: nil
+    config_param :default_index, :string, default: nil
+    config_param :index_key, :string, default: nil
     config_param :time_key, :string, default: 'time'
 
     config_param :use_ack, :bool, default: false
@@ -52,11 +54,20 @@ module Fluent
         msg = {'time' => time,
                'sourcetype' => 'json',
                'event' => record}
+
+        # metadata
         if record[@source_key]
           msg['source'] = record[@source_key]
         elsif @default_source
           msg['source'] = @default_source
         end
+
+        if record[@index_key]
+          msg['index'] = record[@index_key]
+        elsif @default_index
+          msg['index'] = @default_index
+        end
+
         payload << (msg.to_json + "\n")
       end
 
