@@ -1,36 +1,48 @@
 # Fluent::Plugin::Splunk
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/fluent/plugin/splunk`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'fluent-plugin-splunk'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install fluent-plugin-splunk
+This plugin is only for Fluentd Enterprise.
 
 ## Usage
 
-TODO: Write usage instructions here
+### splunk_hec
 
-## Development
+HTTP Event Collector
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```
+<match my.logs>
+  @type splunk_hec
+</match>
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+### splunk_tcp
 
-## Contributing
+TCP input
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/fluent-plugin-splunk.
+```
+<match my.logs>
+  @type splunk_tcp
+</match>
+```
 
+## Configuration
+
+### splunk_hec
+
+### splunk_tcp
+
+## Running tests
+
+Available Splunk versions in test are `6.5.2`, `6.4.6`, `6.3.9`, `6,2.12`, `6.1.13` and 6.0.14.
+
+Start a docker instance Splunk.
+
+```
+$ ./docker.sh login
+$ ./docker.sh debug_run <splunk_version>
+```
+
+Run tests.
+
+```
+$ SPLUNK_VERSION=<splunk_version> bundle exec rake test
+```
