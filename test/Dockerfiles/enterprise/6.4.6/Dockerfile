@@ -44,22 +44,24 @@ RUN apt-get install -y wget sudo \
 ##### Copy config files #####
 ### TCP
 ## TCP raw
-# etc/apps/search/local/{inputs,props}.conf
+# etc/apps/search/local/inputs.conf
 ## HEC
 # etc_tcp/apps/splunk_httpinput/local/inputs.conf
 ## system config
+# etc/system/local/props.conf
 # etc/system/local/server.conf
 # etc/system/local/indexes.conf
 
 ### SSL
 ## TCP raw
-# etc/apps/search/local/{inputs,props}.conf
+# etc/apps/search/local/inputs.conf
 ## HEC
 # etc/apps/splunk_httpinput/local/inputs.conf
 ## Certificates
 # etc/auth/server.pem
 # etc/auth/cacert.pem
 ## system config
+# etc/system/local/props.conf
 # etc/system/local/server.conf
 # etc/system/local/indexes.conf
 # etc/system/local/web.conf
@@ -75,8 +77,10 @@ COPY etc_ssl/apps/search/local/props.conf ${SPLUNK_HOME_SSL}/etc/apps/search/loc
 COPY etc_ssl/auth/server.pem ${SPLUNK_HOME_SSL}/etc/auth/server.pem
 COPY etc_ssl/auth/cacert.pem ${SPLUNK_HOME_SSL}/etc/auth/cacert.pem
 
+COPY etc_tcp/system/local/props.conf ${SPLUNK_HOME_TCP}/etc/system/local/props.conf
 COPY etc_tcp/system/local/server.conf ${SPLUNK_HOME_TCP}/etc/system/local/server.conf
 COPY etc_tcp/system/local/indexes.conf ${SPLUNK_HOME_TCP}/etc/system/local/indexes.conf
+COPY etc_ssl/system/local/props.conf ${SPLUNK_HOME_SSL}/etc/system/local/props.conf
 COPY etc_ssl/system/local/server.conf ${SPLUNK_HOME_SSL}/etc/system/local/server.conf
 COPY etc_ssl/system/local/indexes.conf ${SPLUNK_HOME_SSL}/etc/system/local/indexes.conf
 COPY etc_ssl/system/local/web.conf ${SPLUNK_HOME_SSL}/etc/system/local/web.conf
