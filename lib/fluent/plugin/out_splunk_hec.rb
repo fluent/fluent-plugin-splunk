@@ -13,6 +13,8 @@ module Fluent
     config_param :token, :string, required: true
 
     # for metadata
+    config_param :default_host, :string, default: nil
+    config_param :host_key, :string, default: nil
     config_param :default_source, :string, default: nil
     config_param :source_key, :string, default: nil
     config_param :default_index, :string, default: nil
@@ -58,6 +60,12 @@ module Fluent
 
         # metadata
         msg['sourcetype'] = @sourcetype if @sourcetype
+
+        if record[@host_key]
+          msg['host'] = record[@host_key]
+        elsif @default_host
+          msg['host'] = @default_host
+        end
 
         if record[@source_key]
           msg['source'] = record[@source_key]

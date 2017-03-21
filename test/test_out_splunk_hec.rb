@@ -52,6 +52,8 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     assert_equal 'localhost', d.instance.host
     assert_equal 8088, d.instance.port
     assert_equal '00000000-0000-0000-0000-000000000000', d.instance.token
+    assert_equal nil, d.instance.default_host
+    assert_equal nil, d.instance.host_key
     assert_equal nil, d.instance.default_source
     assert_equal nil, d.instance.source_key
     assert_equal nil, d.instance.default_index
@@ -113,6 +115,8 @@ class SplunkHECOutputTest < Test::Unit::TestCase
       teardown do
         query(test_config[:query_port], {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\" | delete"})
         query(test_config[:query_port], {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_ACK}\" | delete"})
+        query(test_config[:query_port], {'search' => 'search host="default_host_test" | delete'})
+        query(test_config[:query_port], {'search' => 'search host="host_key_test" | delete'})
         query(test_config[:query_port], {'search' => 'search source="DefaultSourceTest" | delete'})
         query(test_config[:query_port], {'search' => 'search source="SourceKeyTest" | delete'})
         query(test_config[:query_port], {'search' => 'search index="default_index_test" | delete'})
@@ -128,6 +132,83 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           d.run
           sleep(3)
           result = get_events(test_config[:query_port], 'source="http:FluentTestNoAck"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'default_host' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_host default_host_test
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'host="default_host_test"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'host_key is found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            host_key key_for_host
+          ])
+          d = create_driver(config)
+          event = {'key_for_host' => 'host_key_test', 'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'host="host_key_test"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'host_key is not found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            host_key key_for_host
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'both default_host and host_key when host_key is found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_host default_host_test
+            host_key key_for_host
+          ])
+          d = create_driver(config)
+          event = {'key_for_host' => 'host_key_test', 'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'host="host_key_test"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'both default_host and host_key when host_key is not found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_host default_host_test
+            host_key key_for_host
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'host="default_host_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
