@@ -31,8 +31,9 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     }.configure(conf)
   end
 
-  def get_events(port, source)
-    query(port, {'search' => "search source=\"#{source}\""})
+  ## query(port, 'source="SourceName"')
+  def get_events(port, search_query)
+    query(port, {'search' => 'search ' + search_query})
   end
 
   def query(port, q)
@@ -53,6 +54,8 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     assert_equal '00000000-0000-0000-0000-000000000000', d.instance.token
     assert_equal nil, d.instance.default_source
     assert_equal nil, d.instance.source_key
+    assert_equal nil, d.instance.default_index
+    assert_equal nil, d.instance.index_key
     assert_equal 'time', d.instance.time_key
     assert_equal false, d.instance.use_ack
     assert_equal nil, d.instance.channel
@@ -112,6 +115,8 @@ class SplunkHECOutputTest < Test::Unit::TestCase
         query(test_config[:query_port], {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_ACK}\" | delete"})
         query(test_config[:query_port], {'search' => 'search source="DefaultSourceTest" | delete'})
         query(test_config[:query_port], {'search' => 'search source="SourceKeyTest" | delete'})
+        query(test_config[:query_port], {'search' => 'search index="default_index_test" | delete'})
+        query(test_config[:query_port], {'search' => 'search index="index_key_test" | delete'})
       end
 
       if SPLUNK_VERSION >= to_version('6.3.0')
@@ -122,7 +127,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           d.emit(event, time)
           d.run
           sleep(3)
-          result = get_events(test_config[:query_port], 'http:FluentTestNoAck')[0]
+          result = get_events(test_config[:query_port], 'source="http:FluentTestNoAck"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
@@ -137,7 +142,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           d.emit(event, time)
           d.run
           sleep(3)
-          result = get_events(test_config[:query_port], 'DefaultSourceTest')[0]
+          result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
@@ -152,7 +157,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           d.emit(event, time)
           d.run
           sleep(3)
-          result = get_events(test_config[:query_port], 'SourceKeyTest')[0]
+          result = get_events(test_config[:query_port], 'source="SourceKeyTest"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
@@ -167,7 +172,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           d.emit(event, time)
           d.run
           sleep(3)
-          result = get_events(test_config[:query_port], DEFAULT_SOURCE_FOR_NO_ACK)[0]
+          result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
@@ -183,7 +188,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           d.emit(event, time)
           d.run
           sleep(3)
-          result = get_events(test_config[:query_port], 'SourceKeyTest')[0]
+          result = get_events(test_config[:query_port], 'source="SourceKeyTest"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
@@ -199,7 +204,84 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           d.emit(event, time)
           d.run
           sleep(3)
-          result = get_events(test_config[:query_port], 'DefaultSourceTest')[0]
+          result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'default_index' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_index default_index_test
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'index="default_index_test"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'index_key is found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            index_key key_for_index
+          ])
+          d = create_driver(config)
+          event = {'key_for_index' => 'index_key_test', 'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'index="index_key_test"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'index_key is not found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            index_key key_for_index
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'both default_index and index_key when index_key is found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_index default_index_test
+            index_key key_for_source
+          ])
+          d = create_driver(config)
+          event = {'key_for_source' => 'index_key_test', 'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'index="index_key_test"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'both default_index and index_key when index_key is not found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_index default_index_test
+            index_key key_for_index
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i
+          d.emit(event, time)
+          d.run
+          sleep(3)
+          result = get_events(test_config[:query_port], 'index="default_index_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
@@ -215,7 +297,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i
           d.emit(event, time)
           d.run
-          result = get_events(test_config[:query_port], 'http:FluentTestAck')[0]
+          result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_ACK}\"")[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
