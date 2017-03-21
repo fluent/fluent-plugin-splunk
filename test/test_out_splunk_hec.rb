@@ -136,6 +136,24 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
 
+        test 'batchd insert' do
+          d = create_driver(test_config[:default_config_no_ack])
+          event0 = {'test' => SecureRandom.hex}
+          time0 = Time.now.to_i
+          event1 = {'test' => SecureRandom.hex}
+          time1 = Time.now.to_i
+          d.emit(event0, time0)
+          d.emit(event1, time1)
+          d.run
+          sleep(3)
+          result = [0]
+          events = get_events(test_config[:query_port], 'source="http:FluentTestNoAck"')
+          assert_equal(time0, events[1]['result']['_time'].to_i)
+          assert_equal(event0, JSON.parse(events[1]['result']['_raw']))
+          assert_equal(time1, events[0]['result']['_time'].to_i)
+          assert_equal(event1, JSON.parse(events[0]['result']['_raw']))
+        end
+
         test 'default_host' do
           config = merge_config(test_config[:default_config_no_ack], %[
             default_host default_host_test
