@@ -127,7 +127,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
         test 'use_ack = false' do
           d = create_driver(test_config[:default_config_no_ack])
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -139,9 +139,9 @@ class SplunkHECOutputTest < Test::Unit::TestCase
         test 'batchd insert' do
           d = create_driver(test_config[:default_config_no_ack])
           event0 = {'test' => SecureRandom.hex}
-          time0 = Time.now.to_i
+          time0 = Time.now.to_i - 100
           event1 = {'test' => SecureRandom.hex}
-          time1 = Time.now.to_i
+          time1 = Time.now.to_i - 200
           d.emit(event0, time0)
           d.emit(event1, time1)
           d.run
@@ -160,7 +160,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -175,7 +175,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'key_for_host' => 'host_key_test', 'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -190,7 +190,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -206,7 +206,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'key_for_host' => 'host_key_test', 'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -222,7 +222,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -237,7 +237,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -252,7 +252,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -267,7 +267,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -283,7 +283,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'key_for_source' => 'SourceKeyTest', 'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -299,7 +299,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -314,7 +314,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -329,7 +329,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'key_for_index' => 'index_key_test', 'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -344,7 +344,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -360,7 +360,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'key_for_source' => 'index_key_test', 'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -376,7 +376,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -391,7 +391,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           sleep(3)
@@ -409,7 +409,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           ])
           d = create_driver(config)
           event = {'test' => SecureRandom.hex}
-          time = Time.now.to_i
+          time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
           result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_ACK}\"")[0]
@@ -432,7 +432,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             ])
 
             d = create_driver(config)
-            time = Time.now.to_i
+            time = Time.now.to_i - 100
             event = {'time' => time, 'msg' => 'msg'}
             record = {'splunk_event' => event.to_json}
             d.emit(record, time)
@@ -459,10 +459,10 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             ])
 
             d = create_driver(config)
-            time0 = Time.now.to_i
+            time0 = Time.now.to_i - 100
             event0 = {'time' => time0, 'msg' => 'msg0'}
             record0 = {'splunk_event' => event0.to_json}
-            time1 = Time.now.to_i
+            time1 = Time.now.to_i - 200
             event1 = {'time' => time1, 'msg' => 'msg1'}
             record1 = {'splunk_event' => event1.to_json}
             d.emit(record0, time0)
@@ -492,7 +492,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             ])
 
             d = create_driver(config)
-            time = Time.now.to_i
+            time = Time.now.to_i - 100
             event = {'time' => time, 'msg' => 'msg'}
             record = {'splunk_event' => event.to_json}
             d.emit(record, time)
@@ -516,7 +516,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             ])
 
             d = create_driver(config)
-            time = Time.now.to_i
+            time = Time.now.to_i - 100
             event = {'time' => time, 'msg' => 'msg'}
             record = {'splunk_event' => event.to_json}
             d.emit(record, time)
@@ -544,10 +544,10 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             ])
 
             d = create_driver(config)
-            time = Time.now.to_i
+            time = Time.now.to_i - 100
             event = {'time' => time, 'msg' => 'msg'}
             record = {'splunk_event' => event.to_json}
-            fluentd_time = time + 1
+            fluentd_time = time - 100
             d.emit(record, fluentd_time)
             d.run
             sleep(3)
@@ -572,10 +572,10 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             ])
 
             d = create_driver(config)
-            time0 = Time.now.to_i
+            time0 = Time.now.to_i - 100
             event0 = {'time' => time0, 'msg' => 'msg0'}
             record0 = {'splunk_event' => event0.to_json}
-            time1 = Time.now.to_i
+            time1 = Time.now.to_i - 200
             event1 = {'time' => time1, 'msg' => 'msg1'}
             record1 = {'splunk_event' => event1.to_json}
             d.emit(record0, time0)
@@ -609,11 +609,11 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             ])
 
             d = create_driver(config)
-            time0 = Time.now.to_i
+            time0 = Time.now.to_i - 100
             event0 = {'time' => time0, 'msg' => 'msg0'}
             # TODO: use values like 'index_key_test0' and 'index_key_test1'
             record0 = {'splunk_event' => event0.to_json, 'key_for_host' => 'default_host_test', 'key_for_source' => 'DefaultSourceTest', 'key_for_index' => 'default_index_test'}
-            time1 = Time.now.to_i
+            time1 = Time.now.to_i - 200
             event1 = {'time' => time1, 'msg' => 'msg1'}
             record1 = {'splunk_event' => event1.to_json, 'key_for_host' => 'host_key_test', 'key_for_source' => 'SourceKeyTest', 'key_for_index' => 'index_key_test'}
             d.emit(record0, time0)
@@ -644,7 +644,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             ])
 
             d = create_driver(config)
-            time = Time.now.to_i
+            time = Time.now.to_i - 100
             event = {'time' => time, 'msg' => 'msg'}
             record = {'splunk_event' => event.to_json}
             d.emit(record, time)
