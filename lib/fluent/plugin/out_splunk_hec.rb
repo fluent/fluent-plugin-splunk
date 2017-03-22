@@ -120,7 +120,7 @@ module Fluent
         msg['index'] = @default_index
       end
 
-      msg.to_json + @line_breaker
+      msg.to_json + "\n"
     end
 
     def format_event_raw(record)
