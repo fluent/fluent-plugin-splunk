@@ -11,8 +11,8 @@ module Fluent
 
     config_param :host, :string, default: 'localhost'
     config_param :port, :integer, required: true
-    config_param :source, :string, default: nil
-    config_param :time_key, :string, default: 'time'
+
+    config_param :event_key, :string, required: true
 
     ## TODO: more detailed option?
     ## For SSL
@@ -38,12 +38,8 @@ module Fluent
       return if chunk.empty?
 
       payload = ''
-      chunk.msgpack_each do |time, record|
-        if record[@time_key]
-          payload << (record.to_json + "\n")
-        else
-          payload << ({@time_key => time.to_i}.merge(record).to_json + "\n")
-        end
+      chunk.msgpack_each do |_time, record|
+        payload << record[@event_key]
       end
 
       unless payload.empty?
