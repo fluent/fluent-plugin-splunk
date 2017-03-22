@@ -13,6 +13,7 @@ module Fluent
     config_param :port, :integer, required: true
 
     config_param :event_key, :string, required: true
+    config_param :line_breaker, :string, default: "\n"
 
     ## TODO: more detailed option?
     ## For SSL
@@ -39,7 +40,7 @@ module Fluent
 
       payload = ''
       chunk.msgpack_each do |_time, record|
-        payload << record[@event_key]
+        payload << (record[@event_key] + @line_breaker)
       end
 
       unless payload.empty?
