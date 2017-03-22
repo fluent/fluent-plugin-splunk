@@ -42,6 +42,9 @@ module Fluent
     # for raw=false and event_key
     config_param :use_fluentd_time, :bool, default: false
 
+    # misc
+    config_param :line_breaker, :string, default: "\n"
+
     def configure(conf)
       super
       raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
@@ -117,11 +120,11 @@ module Fluent
         msg['index'] = @default_index
       end
 
-      msg.to_json + "\n"
+      msg.to_json + @line_breaker
     end
 
     def format_event_raw(record)
-      (record[@event_key] || '') + "\n"
+      (record[@event_key] || '') + @line_breaker
     end
 
     def post(path, body, query = {})
