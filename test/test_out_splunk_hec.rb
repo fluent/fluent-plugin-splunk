@@ -9,6 +9,8 @@ require 'json'
 require 'securerandom'
 
 class SplunkHECOutputTest < Test::Unit::TestCase
+  self.test_order = :random
+
   def setup
     Fluent::Test.setup
   end
@@ -32,8 +34,17 @@ class SplunkHECOutputTest < Test::Unit::TestCase
   end
 
   ## query(port, 'source="SourceName"')
-  def get_events(port, search_query)
-    query(port, {'search' => 'search ' + search_query})
+  def get_events(port, search_query, expected_num = 1)
+    retries = 0
+    events = []
+    while events.length != expected_num
+      print '-' unless retries == 0
+      sleep(3)
+      events = query(port, {'search' => 'search ' + search_query})
+      retries += 1
+      raise "exceed query retry limit" if retries > 20
+    end
+    events
   end
 
   def query(port, q)
@@ -130,13 +141,12 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
-          result = get_events(test_config[:query_port], 'source="http:FluentTestNoAck"')[0]
+          result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
 
-        test 'batchd insert' do
+        test 'batched insert' do
           d = create_driver(test_config[:default_config_no_ack])
           event0 = {'test' => SecureRandom.hex}
           time0 = Time.now.to_i - 100
@@ -145,13 +155,11 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           d.emit(event0, time0)
           d.emit(event1, time1)
           d.run
-          sleep(3)
-          result = [0]
-          events = get_events(test_config[:query_port], 'source="http:FluentTestNoAck"')
-          assert_equal(time0, events[1]['result']['_time'].to_i)
-          assert_equal(event0, JSON.parse(events[1]['result']['_raw']))
-          assert_equal(time1, events[0]['result']['_time'].to_i)
-          assert_equal(event1, JSON.parse(events[0]['result']['_raw']))
+          events = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"", 2)
+          assert_equal(time0, events[0]['result']['_time'].to_i)
+          assert_equal(event0, JSON.parse(events[0]['result']['_raw']))
+          assert_equal(time1, events[1]['result']['_time'].to_i)
+          assert_equal(event1, JSON.parse(events[1]['result']['_raw']))
         end
 
         test 'default_host' do
@@ -163,7 +171,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'host="default_host_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -178,7 +185,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'host="host_key_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -193,7 +199,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -209,7 +214,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'host="host_key_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -225,7 +229,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'host="default_host_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -240,7 +243,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -255,7 +257,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'source="SourceKeyTest"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -270,7 +271,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -286,7 +286,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'source="SourceKeyTest"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -302,7 +301,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -317,7 +315,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'index="default_index_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -332,7 +329,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'index="index_key_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -347,7 +343,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -363,7 +358,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'index="index_key_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -379,7 +373,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], 'index="default_index_test"')[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal(event, JSON.parse(result['result']['_raw']))
@@ -394,7 +387,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           time = Time.now.to_i - 100
           d.emit(event, time)
           d.run
-          sleep(3)
           result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
           assert_equal(time, result['result']['_time'].to_i)
           assert_equal('sourcetype_test', result['result']['_sourcetype'])
@@ -437,7 +429,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             record = {'splunk_event' => event.to_json}
             d.emit(record, time)
             d.run
-            sleep(3)
             result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
             assert_equal(time, result['result']['_time'].to_i)
             assert_equal('fluentd', result['result']['sourcetype'])
@@ -466,22 +457,21 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             event1 = {'time' => time1, 'msg' => 'msg1'}
             record1 = {'splunk_event' => event1.to_json}
             d.emit(record0, time0)
-            d.emit(record1, time0)
+            d.emit(record1, time1)
             d.run
-            sleep(3)
-            events = get_events(test_config[:query_port], 'source="DefaultSourceTest"')
-            assert_equal(time1, events[0]['result']['_time'].to_i)
+            events = get_events(test_config[:query_port], 'source="DefaultSourceTest"', 2)
+            assert_equal(time0, events[0]['result']['_time'].to_i)
             assert_equal('fluentd', events[0]['result']['sourcetype'])
             assert_equal('default_host_test', events[0]['result']['host'])
             assert_equal('DefaultSourceTest', events[0]['result']['source'])
             assert_equal('default_index_test', events[0]['result']['index'])
-            assert_equal(event1, JSON.parse(events[0]['result']['_raw']))
-            assert_equal(time0, events[1]['result']['_time'].to_i)
+            assert_equal(event0, JSON.parse(events[0]['result']['_raw']))
+            assert_equal(time1, events[1]['result']['_time'].to_i)
             assert_equal('fluentd', events[1]['result']['sourcetype'])
             assert_equal('default_host_test', events[1]['result']['host'])
             assert_equal('DefaultSourceTest', events[1]['result']['source'])
             assert_equal('default_index_test', events[1]['result']['index'])
-            assert_equal(event0, JSON.parse(events[1]['result']['_raw']))
+            assert_equal(event1, JSON.parse(events[1]['result']['_raw']))
           end
 
           test 'without metadata' do
@@ -497,7 +487,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             record = {'splunk_event' => event.to_json}
             d.emit(record, time)
             d.run
-            sleep(3)
             result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
             assert_equal(event, JSON.parse(result['result']['_raw']))
           end
@@ -521,7 +510,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             record = {'splunk_event' => event.to_json}
             d.emit(record, time)
             d.run
-            sleep(3)
             result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
             assert_equal(time, result['result']['_time'].to_i)
             assert_equal('fluentd', result['result']['sourcetype'])
@@ -550,7 +538,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             fluentd_time = time - 100
             d.emit(record, fluentd_time)
             d.run
-            sleep(3)
             result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
             assert_equal(fluentd_time, result['result']['_time'].to_i)
             assert_equal('fluentd', result['result']['sourcetype'])
@@ -579,22 +566,21 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             event1 = {'time' => time1, 'msg' => 'msg1'}
             record1 = {'splunk_event' => event1.to_json}
             d.emit(record0, time0)
-            d.emit(record1, time0)
+            d.emit(record1, time1)
             d.run
-            sleep(3)
-            events = get_events(test_config[:query_port], 'source="DefaultSourceTest"')
-            assert_equal(time1, events[0]['result']['_time'].to_i)
+            events = get_events(test_config[:query_port], 'source="DefaultSourceTest"', 2)
+            assert_equal(time0, events[0]['result']['_time'].to_i)
             assert_equal('fluentd', events[0]['result']['sourcetype'])
             assert_equal('default_host_test', events[0]['result']['host'])
             assert_equal('DefaultSourceTest', events[0]['result']['source'])
             assert_equal('default_index_test', events[0]['result']['index'])
-            assert_equal(event1, JSON.parse(events[0]['result']['_raw']))
-            assert_equal(time0, events[1]['result']['_time'].to_i)
+            assert_equal(event0, JSON.parse(events[0]['result']['_raw']))
+            assert_equal(time1, events[1]['result']['_time'].to_i)
             assert_equal('fluentd', events[1]['result']['sourcetype'])
             assert_equal('default_host_test', events[1]['result']['host'])
             assert_equal('DefaultSourceTest', events[1]['result']['source'])
             assert_equal('default_index_test', events[1]['result']['index'])
-            assert_equal(event0, JSON.parse(events[1]['result']['_raw']))
+            assert_equal(event1, JSON.parse(events[1]['result']['_raw']))
           end
 
           test 'batched data with diffrent metadata' do
@@ -619,7 +605,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             d.emit(record0, time0)
             d.emit(record1, time1)
             d.run
-            sleep(3)
             result0 = get_events(test_config[:query_port], 'source=SourceKeyTest')[0]
             assert_equal(time1, result0['result']['_time'].to_i)
             assert_equal('fluentd', result0['result']['sourcetype'])
@@ -649,7 +634,6 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             record = {'splunk_event' => event.to_json}
             d.emit(record, time)
             d.run
-            sleep(3)
             result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
             assert_equal(event, JSON.parse(result['result']['_raw']))
           end
