@@ -91,7 +91,7 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
         v = v.gsub(/^"/, '').gsub(/"$/, '').gsub('\"', '"')
       elsif v =~ /^\d+$/
         v = v.to_i
-      elsif /^\d+\.\d+$/
+      elsif v =~ /^\d+\.\d+$/
         v = v.to_f
       else
         raise "invalid value as kv: #{v}"
