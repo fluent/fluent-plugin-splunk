@@ -49,7 +49,8 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     assert_equal nil, d.instance.channel
     assert_equal 1, d.instance.ack_interval
     assert_equal 3, d.instance.ack_retry_limit
-    assert_equal false, d.instance.ssl_verify_peer
+    assert_equal false, d.instance.use_ssl
+    assert_equal true, d.instance.ssl_verify
     assert_equal nil, d.instance.ca_file
     assert_equal nil, d.instance.client_cert
     assert_equal nil, d.instance.client_key
@@ -84,14 +85,14 @@ class SplunkHECOutputTest < Test::Unit::TestCase
   ## I just wanna run same test code for HTTP and HTTPS...
   [{sub_test_case_name: 'HTTP', query_port: 8089, config: %[
                                                             port 8088
-                                                            ssl_verify_peer false
+                                                            use_ssl false
                                                           ]},
    {sub_test_case_name: 'HTTPS', query_port: 8289, config: %[
-                                                            port 8288
-                                                            ssl_verify_peer true
-                                                            ca_file #{File.expand_path('../cert/cacert.pem', __FILE__)}
-                                                            client_cert #{File.expand_path('../cert/client.pem', __FILE__)}
-                                                            client_key #{File.expand_path('../cert/client.key', __FILE__)}
+                                                             port 8288
+                                                             use_ssl true
+                                                             ca_file #{File.expand_path('../cert/cacert.pem', __FILE__)}
+                                                             client_cert #{File.expand_path('../cert/client.pem', __FILE__)}
+                                                             client_key #{File.expand_path('../cert/client.key', __FILE__)}
                                                             ]}
   ].each do |test_config|
     test_config[:default_config_no_ack] = merge_config(test_config[:config], DEFAULT_CONFIG_NO_ACK)
@@ -614,8 +615,54 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             assert_equal('default_index_test', result['result']['index'])
             assert_equal(event, JSON.parse(result['result']['_raw']))
           end
+        end
+      end
+    end
+  end
 
+  if SPLUNK_VERSION >= to_version('6.3.0')
+    sub_test_case 'HTTPS misc' do
+      teardown do
+        query(8289, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\" | delete"})
+      end
 
+      sub_test_case 'with invalid certificate' do
+        ## realize by changing ca_file
+        test 'ssl_verify=true' do
+          config = merge_config(DEFAULT_CONFIG_NO_ACK, %[
+            port 8288
+            use_ssl true
+            ssl_verify true
+            ca_file #{File.expand_path('../cert/badcacert.pem', __FILE__)}
+            client_cert #{File.expand_path('../cert/client.pem', __FILE__)}
+            client_key #{File.expand_path('../cert/client.key', __FILE__)}
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i - 100
+          d.emit(event, time)
+          assert_raise OpenSSL::SSL::SSLError, "SSL_connect returned=1 errno=0 state=error: certificate verify failed" do
+            d.run
+          end
+        end
+
+        test 'ssl_verify=false' do
+          config = merge_config(DEFAULT_CONFIG_NO_ACK, %[
+            port 8288
+            use_ssl true
+            ssl_verify false
+            ca_file #{File.expand_path('../cert/badcacert.pem', __FILE__)}
+            client_cert #{File.expand_path('../cert/client.pem', __FILE__)}
+            client_key #{File.expand_path('../cert/client.key', __FILE__)}
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i - 100
+          d.emit(event, time)
+          d.run
+          result = get_events(8289, "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
         end
       end
     end

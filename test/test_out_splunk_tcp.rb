@@ -44,7 +44,8 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
     assert_equal 'unixtime', d.instance.time_format
     assert_equal false, d.instance.localtime
     assert_equal "\n", d.instance.line_breaker
-    assert_equal false, d.instance.ssl_verify_peer
+    assert_equal false, d.instance.use_ssl
+    assert_equal false, d.instance.ssl_verify
     assert_equal nil, d.instance.ca_file
     assert_equal nil, d.instance.client_cert
     assert_equal nil, d.instance.client_key
@@ -102,11 +103,11 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
   ## I just wanna run same test code for HTTP and HTTPS...
   [{sub_test_case_name: 'TCP', query_port: 8089, server_port_base: 12300, config: %[
                                                                                     host 127.0.0.1
-                                                                                    ssl_verify_peer false
+                                                                                    use_ssl false
                                                                                   ]},
    {sub_test_case_name: 'SSL', query_port: 8289, server_port_base: 12500, config: %[
                                                                                     host 127.0.0.1
-                                                                                    ssl_verify_peer true
+                                                                                    use_ssl true
                                                                                     ca_file #{File.expand_path('../cert/cacert.pem', __FILE__)}
                                                                                     client_cert #{File.expand_path('../cert/client.pem', __FILE__)}
                                                                                     client_key #{File.expand_path('../cert/client.key', __FILE__)}
@@ -338,6 +339,60 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
           assert_equal(time0, result['result']['_time'].to_i)
           assert_equal(event, parse_kv(result['result']['_raw']))
         end
+      end
+    end
+  end
+
+  sub_test_case 'SSL misc' do
+    teardown do
+      PORT_MAP.keys.each do |port|
+        query(8289, {'search' => "search source=\"tcp:#{port(12500, port)}\" | delete"})
+      end
+    end
+
+    sub_test_case 'with invalid certificate' do
+      ## realize by changing ca_file
+      test 'ssl_verify=true' do
+        config = %[
+          host 127.0.0.1
+          port #{port(12500)}
+          format raw
+          event_key event
+          use_ssl true
+          ssl_verify true
+          ca_file #{File.expand_path('../cert/badcacert.pem', __FILE__)}
+          client_cert #{File.expand_path('../cert/client.pem', __FILE__)}
+          client_key #{File.expand_path('../cert/client.key', __FILE__)}
+        ]
+        d = create_driver(config)
+        time = Time.now.to_i - 100
+        event = {'time' => time, 'test' => SecureRandom.hex}
+        d.emit({'event' => event.to_json}, time)
+        assert_raise OpenSSL::SSL::SSLError, "SSL_connect returned=1 errno=0 state=error: certificate verify failed" do
+          d.run
+        end
+      end
+
+      test 'ssl_verify=false' do
+        config = %[
+          host 127.0.0.1
+          port #{port(12500)}
+          format raw
+          event_key event
+          use_ssl true
+          ssl_verify false
+          ca_file #{File.expand_path('../cert/badcacert.pem', __FILE__)}
+          client_cert #{File.expand_path('../cert/client.pem', __FILE__)}
+          client_key #{File.expand_path('../cert/client.key', __FILE__)}
+        ]
+        d = create_driver(config)
+        time = Time.now.to_i - 100
+        event = {'time' => time, 'test' => SecureRandom.hex}
+        d.emit({'event' => event.to_json}, time)
+        d.run
+        result = get_events(8289, "source=\"tcp:#{port(12500)}\"")[0]
+        assert_equal(time, result['result']['_time'].to_i)
+        assert_equal(event, JSON.parse(result['result']['_raw']))
       end
     end
   end

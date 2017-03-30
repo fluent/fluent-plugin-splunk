@@ -28,7 +28,8 @@ module Fluent
     config_param :line_breaker, :string, default: "\n"
 
     ## For SSL
-    config_param :ssl_verify_peer, :bool, default: false
+    config_param :use_ssl, :bool, default: false
+    config_param :ssl_verify, :bool, default: true
     config_param :ca_file, :string, default: nil
     config_param :client_cert, :string, default: nil
     config_param :client_key, :string, default: nil
@@ -114,12 +115,13 @@ module Fluent
     end
 
     def create_socket
-      @ssl_verify_peer ? create_ssl_socket : create_tcp_socket
+      @use_ssl ? create_ssl_socket : create_tcp_socket
     end
 
     def create_ssl_socket
       ctx = OpenSSL::SSL::SSLContext.new
-      ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      verify_mode = (@ssl_verify ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE)
+      ctx.verify_mode = verify_mode
       ctx.cert = OpenSSL::X509::Certificate.new(File.read(@client_cert)) if @client_cert
       ctx.key = OpenSSL::PKey::RSA.new(File.read(@client_key), @client_key_pass) if @client_key
 

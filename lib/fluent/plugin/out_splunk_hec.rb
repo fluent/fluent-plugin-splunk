@@ -27,14 +27,6 @@ module Fluent
     config_param :ack_interval, :integer, default: 1
     config_param :ack_retry_limit, :integer, default: 3
 
-    ## TODO: more detailed option?
-    ## For SSL
-    config_param :ssl_verify_peer, :bool, default: false
-    config_param :ca_file, :string, default: nil
-    config_param :client_cert, :string, default: nil
-    config_param :client_key, :string, default: nil
-    config_param :client_key_pass, :string, default: nil
-
     # for raw events
     config_param :raw, :bool, default: false
     config_param :event_key, :string, default: nil
@@ -44,6 +36,14 @@ module Fluent
 
     # misc
     config_param :line_breaker, :string, default: "\n"
+
+    ## For SSL
+    config_param :use_ssl, :bool, default: false
+    config_param :ssl_verify, :bool, default: true
+    config_param :ca_file, :string, default: nil
+    config_param :client_cert, :string, default: nil
+    config_param :client_key, :string, default: nil
+    config_param :client_key_pass, :string, default: nil
 
     def configure(conf)
       super
@@ -86,12 +86,15 @@ module Fluent
       header = {'Content-type' => 'application/json',
                 'Authorization' => "Splunk #{@token}"}
       header['X-Splunk-Request-Channel'] = @channel if @channel
-      base_url = @ssl_verify_peer ? URI::HTTPS.build(host: @host, port: @port) : URI::HTTP.build(host: @host, port: @port)
+      base_url = @use_ssl ? URI::HTTPS.build(host: @host, port: @port) : URI::HTTP.build(host: @host, port: @port)
       @client = HTTPClient.new(default_header: header,
                                base_url: base_url)
-      @client.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_PEER if @ssl_verify_peer
-      @client.ssl_config.add_trust_ca(@ca_file) if @ca_file
-      @client.ssl_config.set_client_cert_file(@client_cert, @client_key, @client_key_pass) if @client_cert && @client_key
+      if @use_ssl
+        verify_mode = (@ssl_verify ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE)
+        @client.ssl_config.verify_mode = verify_mode
+        @client.ssl_config.add_trust_ca(@ca_file) if @ca_file
+        @client.ssl_config.set_client_cert_file(@client_cert, @client_key, @client_key_pass) if @client_cert && @client_key
+      end
     end
 
     def format_event(time, record)
