@@ -368,9 +368,9 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
         time = Time.now.to_i - 100
         event = {'time' => time, 'test' => SecureRandom.hex}
         d.emit({'event' => event.to_json}, time)
-        assert_raise OpenSSL::SSL::SSLError, "SSL_connect returned=1 errno=0 state=error: certificate verify failed" do
-          d.run
-        end
+        # todo: shoud be able to check class and message
+        assert_raise(OpenSSL::SSL::SSLError){ d.run }
+        assert_raise_message(/certificate verify failed/){ d.run }
       end
 
       test 'ssl_verify=false' do
