@@ -395,5 +395,48 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
         assert_equal(event, JSON.parse(result['result']['_raw']))
       end
     end
+
+    # TODO: tests for requireClientCert=false at Splunk
+    sub_test_case 'client authentication failed' do
+      test 'with invalid client certificate' do
+        config = %[
+          host 127.0.0.1
+          port #{port(12500)}
+          format raw
+          event_key event
+          use_ssl true
+          ssl_verify true
+          ca_file #{File.expand_path('../cert/cacert.pem', __FILE__)}
+          client_cert #{File.expand_path('../cert/badclient.pem', __FILE__)}
+          client_key #{File.expand_path('../cert/badclient.key', __FILE__)}
+        ]
+        d = create_driver(config)
+        time = Time.now.to_i - 100
+        event = {'time' => time, 'test' => SecureRandom.hex}
+        d.emit({'event' => event.to_json}, time)
+        # todo: shoud be able to check class and message
+        assert_raise(OpenSSL::SSL::SSLError){ d.run }
+        assert_raise_message(/alert unknown ca/){ d.run }
+      end
+
+      test 'without client certificate' do
+        config = %[
+          host 127.0.0.1
+          port #{port(12500)}
+          format raw
+          event_key event
+          use_ssl true
+          ssl_verify true
+          ca_file #{File.expand_path('../cert/cacert.pem', __FILE__)}
+        ]
+        d = create_driver(config)
+        time = Time.now.to_i - 100
+        event = {'time' => time, 'test' => SecureRandom.hex}
+        d.emit({'event' => event.to_json}, time)
+        # todo: shoud be able to check class and message
+        assert_raise(OpenSSL::SSL::SSLError){ d.run }
+        assert_raise_message(/alert handshake failure/){ d.run }
+      end
+    end
   end
 end
