@@ -45,7 +45,7 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
     assert_equal false, d.instance.localtime
     assert_equal "\n", d.instance.line_breaker
     assert_equal false, d.instance.use_ssl
-    assert_equal false, d.instance.ssl_verify
+    assert_equal true, d.instance.ssl_verify
     assert_equal nil, d.instance.ca_file
     assert_equal nil, d.instance.client_cert
     assert_equal nil, d.instance.client_key
