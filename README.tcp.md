@@ -103,6 +103,8 @@ If the key missing in a record, nothing is sent.
 
 #### `json`
 
+`KV_MODE=json` can be used as sourcetype configuration.
+
 ##### Related parameters
 * use_fluentd_time
 * time_key
@@ -116,6 +118,8 @@ Key-value pairs like the following.
 ```
 time=1490862563 method="GET" path="/" code=200
 ```
+
+`KV_MODE=auto` can be used as sourcetype configuration.
 
 ##### Related parameters
 * use_fluentd_time
