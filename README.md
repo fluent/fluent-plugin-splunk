@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/treasure-data/fluent-plugin-splunk.svg?style=svg&circle-token=1303d4617f67c8d2e277f181dffd0a62d59dffea)](https://circleci.com/gh/treasure-data/fluent-plugin-splunk)
+
 # Fluent::Plugin::Splunk
 
 **This plugin is only for Fluentd Enterprise.**
