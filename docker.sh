@@ -71,5 +71,6 @@ case "$COMMAND" in
     ;;
   *)
     echo "Unkowon command"
+    exit 1
     ;;
 esac
