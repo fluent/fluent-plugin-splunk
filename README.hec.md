@@ -1,0 +1,175 @@
+# out_splunk_hec - Splunk HTTP Event Collector Output Plugin
+
+This plugin is only for Fluentd Enterprise.
+
+## Table of Contents
+
+* [Table of Contents](#table-of-contents)
+* [Example Configuration](#example-configuration)
+* [Parameters](#parameters)
+   * [type (required)](#type-required)
+   * [host (required)](#host-required)
+   * [port (required)](#port-required)
+   * [token (required)](#token-required)
+   * [default_host](#default_host)
+   * [host_key](#host_key)
+   * [defaout_source](#defaout_source)
+   * [source_key](#source_key)
+   * [default_index](#default_index)
+   * [index_key](#index_key)
+   * [sourcetype](#sourcetype)
+   * [use_fluentd_time](#use_fluentd_time)
+   * [use_ack](#use_ack)
+   * [channel](#channel)
+   * [ack_interval](#ack_interval)
+   * [ack_retry_limit](#ack_retry_limit)
+   * [raw](#raw)
+   * [event_key](#event_key)
+   * [line_breaker](#line_breaker)
+   * [use_ssl](#use_ssl)
+   * [ssl_verify](#ssl_verify)
+   * [ca_file](#ca_file)
+   * [client_cert](#client_cert)
+   * [client_key](#client_key)
+   * [client_key_pass](#client_key_pass)
+
+## Example Configuration
+
+```
+<match splunk.**>
+  @type splunk_hec
+  host example.com
+  port 8089
+  token 00000000-0000-0000-0000-000000000000
+
+  # metadata parameter
+  default_source fluentd
+
+  # ack parameter
+  use_ack true
+  ack_retry 8
+
+  # buffered output parameter
+  buffer 10s
+</match>
+```
+
+## Parameters
+
+### type (required)
+
+The value must be `splunk_hec`.
+
+### host (required)
+
+The Splunk hostname.
+
+### port (required)
+
+The Splunk port.
+
+### token (required)
+
+The token for HTTP Event Collector.
+
+### default_host
+
+If you set this, the value is set as host metadata.
+
+### host_key
+
+If you set this, the value associated with this key in each records is used as host metadata. When the key is missing, `default_host` is used.
+
+### defaout_source
+
+If you set this, the value is set as source metadata.
+
+### source_key
+
+If you set this, the value associated with this key in each records is used as source metadata. When the key is missing, `default_source` is used.
+
+### default_index
+
+If you set this, the value is set as index metadata.
+
+### index_key
+
+If you set this, the value associated with this key in each records is used as index metadata. When the key is missing, `default_index` is used.
+
+### sourcetype
+
+If you set this, the value is set as sourcetype metadata.
+
+### use_fluentd_time
+
+The default: `true`
+
+If set true, fleuntd's timestamp is used as time metadata. If the record already has its own time value, this options should be `false`.
+
+### use_ack
+
+Enable/Disable [Indexer acknowledgement](https://www.google.co.jp/search?q=splunk+http+ack&oq=splunk+http+ack&aqs=chrome..69i57j69i60l2.2725j0j9&sourceid=chrome&ie=UTF-8). When this is set `true`, `channel` parameter is required.
+
+### channel
+
+This is used as [channel identifier](http://dev.splunk.com/view/event-collector/SP-CAAAE8X#aboutchannels).
+ When you set `use_ack` or `raw`, this parameter is required.
+
+### ack_interval
+
+The default: `1`
+
+Indicates how many seconds the plugin should wait between checks for Indexer acknowledgement.
+
+### ack_retry_limit
+
+The default: `3`
+
+Indicates how many times the plugin check Indexer acknowledgement.
+
+### raw
+
+Enables [raw mode](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#raw).
+
+On raw mode, the plugin can't configure metadata at event level and time metadata. So `*_key` options are ignored.
+When this is set `true`, channel parameter must also be set.
+
+### event_key
+
+Specify the key for raw event message. 
+On raw mode, the value specified by this key is sent as event. Otherwise, the value and metadata is sent.
+When `raw` is set to `true`, this parameter is required.
+
+### line_breaker
+
+The default: `"\n"`
+
+The line breaker used when multiple records is sent at once.
+
+### use_ssl
+
+The default: `false`
+
+Use SSL when connecting to Splunk.
+
+### ssl_verify
+
+The default: `true`
+
+Enable/Disable SSL certificate verification.
+
+### ca_file
+
+The path of CA file.
+
+### client_cert
+
+The path of client certificate file.
+
+### client_key
+
+The path of client key file
+
+### client_key_pass
+
+The passphrase of client key.
