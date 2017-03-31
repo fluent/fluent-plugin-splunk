@@ -98,7 +98,7 @@ module Fluent
     def format_event(time, record)
       event = @event_key ? (record[@event_key] || '') : record
       msg = {'event' => event}
-      msg['time'] = true if @use_fluentd_time
+      msg['time'] = time if @use_fluentd_time
 
       # metadata
       msg['sourcetype'] = @sourcetype if @sourcetype
