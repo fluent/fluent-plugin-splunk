@@ -43,12 +43,12 @@ This plugin is only for Fluentd Enterprise.
   format raw
   event_key log
 
-  # buffered output parameter
-  flush_interval 10s
-
   # ssl parameter
   use_ssl true
   ca_file /path/to/ca.pem
+
+  # buffered output parameter
+  flush_interval 10s
 </match>
 ```
 
@@ -66,6 +66,10 @@ This example shows json format.
   port 8089
 
   format json
+
+  # ssl parameter
+  use_ssl true
+  ca_file /path/to/ca.pem
 
   # flush
   flush_interval 10s
