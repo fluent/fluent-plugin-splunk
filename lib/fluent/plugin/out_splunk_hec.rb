@@ -20,7 +20,7 @@ module Fluent
     config_param :default_index, :string, default: nil
     config_param :index_key, :string, default: nil
     config_param :sourcetype, :string, default: nil
-    config_param :use_fluentd_time, :bool, default: false
+    config_param :use_fluentd_time, :bool, default: true
 
     # for Indexer acknowledgement
     config_param :use_ack, :bool, default: false
