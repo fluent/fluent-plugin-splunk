@@ -8,8 +8,8 @@ module Fluent
   class SplunkHECOutput < ObjectBufferedOutput
     Fluent::Plugin.register_output('splunk_hec', self)
 
-    config_param :host, :string, default: 'localhost'
-    config_param :port, :integer, default: 8088
+    config_param :host, :string, required: true
+    config_param :port, :integer, required: true
     config_param :token, :string, required: true
 
     # for metadata
@@ -20,6 +20,7 @@ module Fluent
     config_param :default_index, :string, default: nil
     config_param :index_key, :string, default: nil
     config_param :sourcetype, :string, default: nil
+    config_param :use_fluentd_time, :bool, default: false
 
     # for Indexer acknowledgement
     config_param :use_ack, :bool, default: false
@@ -30,9 +31,6 @@ module Fluent
     # for raw events
     config_param :raw, :bool, default: false
     config_param :event_key, :string, default: nil
-
-    # for raw=false and event_key
-    config_param :use_fluentd_time, :bool, default: false
 
     # misc
     config_param :line_breaker, :string, default: "\n"
@@ -100,7 +98,7 @@ module Fluent
     def format_event(time, record)
       event = @event_key ? (record[@event_key] || '') : record
       msg = {'event' => event}
-      msg['time'] = time unless @event_key && !@use_fluentd_time
+      msg['time'] = true if @use_fluentd_time
 
       # metadata
       msg['sourcetype'] = @sourcetype if @sourcetype
