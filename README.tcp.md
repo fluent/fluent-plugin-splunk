@@ -1,6 +1,6 @@
 # out_splunk_tcp - Splunk TCP inputs Output Plugin
 
-This plugin is only for Fluentd Enterprise.
+**This plugin is only for Fluentd Enterprise.**
 
 ## Table of Contents
 
