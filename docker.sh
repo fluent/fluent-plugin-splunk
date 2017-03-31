@@ -26,18 +26,25 @@ VOLUME="-v ${PWD}/test/config/props.conf:/opt/splunk_tcp/etc/system/local/props.
         -v ${PWD}/test/config/inputs.tcp.conf:/opt/splunk_tcp/etc/apps/search/local/inputs.conf \
         -v ${PWD}/test/config/inputs.ssl.conf:/opt/splunk_ssl/etc/apps/search/local/inputs.conf"
 
+if [ "$VERSION" = "6.3.9" ]; then
+  VOLUME="${VOLUME} \
+          -v ${PWD}/test/config/server.conf.6.3:/opt/splunk_ssl/etc/system/local/server.conf.original \
+          -v ${PWD}/test/config/entrypoint.sh.6.3:/sbin/entrypoint.sh"
+
+fi
+
 case "$COMMAND" in
   pull)
     docker pull ${IMAGE}
     ;;
   run)
-    docker run -d ${PORTS} ${VOLUME} ${IMAGE}
+    docker run -d --entrypoint=/bin/bash ${PORTS} ${VOLUME} ${IMAGE} /sbin/entrypoint.sh
     ;;
   stop)
     docker stop $(docker ps -q --filter ancestor=${IMAGE})
     ;;
   debug_run)
-    docker run ${PORTS} ${VOLUME} ${IMAGE_LOCAL} --debug
+    docker run --entrypoint=/bin/bash ${PORTS} ${VOLUME} ${IMAGE_LOCAL} /sbin/entrypoint.sh
     ;;
   build)
     docker build --no-cache=true -t ${IMAGE_LOCAL} test/Dockerfiles/enterprise/${VERSION}

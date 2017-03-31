@@ -1,0 +1,18 @@
+[general]
+allowRemoteLogin = always
+
+[license]
+active_group = Free
+
+[kvstore]
+port = 8391
+
+[sslConfig]
+enableSplunkdSSL=true
+sslKeysfile=server.pem
+requireClientCert=true
+caCertFile=cacert.pem
+caPath=$SPLUNK_HOME/etc/auth
+sslVersions=*,-ssl2
+allowSslCompression=true
+allowSslRenegotiation=true

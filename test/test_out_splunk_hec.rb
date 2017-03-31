@@ -620,9 +620,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     end
   end
 
-  # TODO: should also be tested against 6.3, but its ssl config for HEC uses the management server's one
-  #       it is difficult use our own certificate (maybe possible).
-  if SPLUNK_VERSION >= to_version('6.4.0')
+  if SPLUNK_VERSION >= to_version('6.3.0')
     sub_test_case 'HTTPS misc' do
       teardown do
         query(8289, {'search' => "search source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\" | delete"})
