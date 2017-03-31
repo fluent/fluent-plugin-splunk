@@ -395,7 +395,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
               raw true
               channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
               event_key splunk_event
-              sourcetype fluentd
+              sourcetype fluentd_json_unixtime
               default_host default_host_test
               default_source DefaultSourceTest
               default_index default_index_test
@@ -409,7 +409,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             d.run
             result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
             assert_equal(time, result['result']['_time'].to_i)
-            assert_equal('fluentd', result['result']['sourcetype'])
+            assert_equal('fluentd_json_unixtime', result['result']['sourcetype'])
             assert_equal('default_host_test', result['result']['host'])
             assert_equal('DefaultSourceTest', result['result']['source'])
             assert_equal('default_index_test', result['result']['index'])
@@ -421,7 +421,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
               raw true
               channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
               event_key splunk_event
-              sourcetype fluentd
+              sourcetype fluentd_json_unixtime
               default_host default_host_test
               default_source DefaultSourceTest
               default_index default_index_test
@@ -439,13 +439,13 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             d.run
             events = get_events(test_config[:query_port], 'source="DefaultSourceTest"', 2)
             assert_equal(time0, events[0]['result']['_time'].to_i)
-            assert_equal('fluentd', events[0]['result']['sourcetype'])
+            assert_equal('fluentd_json_unixtime', events[0]['result']['sourcetype'])
             assert_equal('default_host_test', events[0]['result']['host'])
             assert_equal('DefaultSourceTest', events[0]['result']['source'])
             assert_equal('default_index_test', events[0]['result']['index'])
             assert_equal(event0, JSON.parse(events[0]['result']['_raw']))
             assert_equal(time1, events[1]['result']['_time'].to_i)
-            assert_equal('fluentd', events[1]['result']['sourcetype'])
+            assert_equal('fluentd_json_unixtime', events[1]['result']['sourcetype'])
             assert_equal('default_host_test', events[1]['result']['host'])
             assert_equal('DefaultSourceTest', events[1]['result']['source'])
             assert_equal('default_index_test', events[1]['result']['index'])
@@ -477,7 +477,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
                 raw false
                 channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
                 event_key splunk_event
-                sourcetype fluentd
+                sourcetype fluentd_json_unixtime
                 default_host default_host_test
                 default_source DefaultSourceTest
                 default_index default_index_test
@@ -491,7 +491,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
               d.run
               result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
               assert_equal(time, result['result']['_time'].to_i)
-              assert_equal('fluentd', result['result']['sourcetype'])
+              assert_equal('fluentd_json_unixtime', result['result']['sourcetype'])
               assert_equal('default_host_test', result['result']['host'])
               assert_equal('DefaultSourceTest', result['result']['source'])
               assert_equal('default_index_test', result['result']['index'])
@@ -503,7 +503,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
                 raw false
                 channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
                 event_key splunk_event
-                sourcetype fluentd
+                sourcetype fluentd_json_unixtime
                 default_host default_host_test
                 default_source DefaultSourceTest
                 default_index default_index_test
@@ -521,13 +521,13 @@ class SplunkHECOutputTest < Test::Unit::TestCase
               d.run
               events = get_events(test_config[:query_port], 'source="DefaultSourceTest"', 2)
               assert_equal(time0, events[0]['result']['_time'].to_i)
-              assert_equal('fluentd', events[0]['result']['sourcetype'])
+              assert_equal('fluentd_json_unixtime', events[0]['result']['sourcetype'])
               assert_equal('default_host_test', events[0]['result']['host'])
               assert_equal('DefaultSourceTest', events[0]['result']['source'])
               assert_equal('default_index_test', events[0]['result']['index'])
               assert_equal(event0, JSON.parse(events[0]['result']['_raw']))
               assert_equal(time1, events[1]['result']['_time'].to_i)
-              assert_equal('fluentd', events[1]['result']['sourcetype'])
+              assert_equal('fluentd_json_unixtime', events[1]['result']['sourcetype'])
               assert_equal('default_host_test', events[1]['result']['host'])
               assert_equal('DefaultSourceTest', events[1]['result']['source'])
               assert_equal('default_index_test', events[1]['result']['index'])
@@ -539,7 +539,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
                 raw false
                 channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
                 event_key splunk_event
-                sourcetype fluentd
+                sourcetype fluentd_json_unixtime
                 host_key key_for_host
                 source_key key_for_source
                 index_key key_for_index
@@ -558,14 +558,14 @@ class SplunkHECOutputTest < Test::Unit::TestCase
               d.run
               result0 = get_events(test_config[:query_port], 'source=SourceKeyTest')[0]
               assert_equal(time1, result0['result']['_time'].to_i)
-              assert_equal('fluentd', result0['result']['sourcetype'])
+              assert_equal('fluentd_json_unixtime', result0['result']['sourcetype'])
               assert_equal('host_key_test', result0['result']['host'])
               assert_equal('SourceKeyTest', result0['result']['source'])
               assert_equal('index_key_test', result0['result']['index'])
               assert_equal(event1, JSON.parse(result0['result']['_raw']))
               result1 = get_events(test_config[:query_port], 'source=DefaultSourceTest')[0]
               assert_equal(time0, result1['result']['_time'].to_i)
-              assert_equal('fluentd', result1['result']['sourcetype'])
+              assert_equal('fluentd_json_unixtime', result1['result']['sourcetype'])
               assert_equal('default_host_test', result1['result']['host'])
               assert_equal('DefaultSourceTest', result1['result']['source'])
               assert_equal('default_index_test', result1['result']['index'])
@@ -595,7 +595,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
               raw false
               channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
               event_key splunk_event
-              sourcetype fluentd
+              sourcetype fluentd_json_unixtime
               default_host default_host_test
               default_source DefaultSourceTest
               default_index default_index_test
@@ -611,7 +611,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             d.run
             result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
             assert_equal(fluentd_time, result['result']['_time'].to_i)
-            assert_equal('fluentd', result['result']['sourcetype'])
+            assert_equal('fluentd_json_unixtime', result['result']['sourcetype'])
             assert_equal('default_host_test', result['result']['host'])
             assert_equal('DefaultSourceTest', result['result']['source'])
             assert_equal('default_index_test', result['result']['index'])
