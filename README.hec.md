@@ -49,6 +49,10 @@
   channel 8e69d7b3-f266-e9f3-2747-cc5b7f809897
   ack_retry 8
 
+  # ssl parameter
+  use_ssl true
+  ca_file /path/to/ca.pem
+
   # buffered output parameter
   buffer 10s
 </match>
