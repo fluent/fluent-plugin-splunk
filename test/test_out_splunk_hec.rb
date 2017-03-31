@@ -19,6 +19,8 @@ class SplunkHECOutputTest < Test::Unit::TestCase
   end
 
   CONFIG = %[
+    host 127.0.0.1
+    port 8088
     token 00000000-0000-0000-0000-000000000000
   ]
 
@@ -35,7 +37,7 @@ class SplunkHECOutputTest < Test::Unit::TestCase
 
   test 'configure' do
     d = create_driver
-    assert_equal 'localhost', d.instance.host
+    assert_equal '127.0.0.1', d.instance.host
     assert_equal 8088, d.instance.port
     assert_equal '00000000-0000-0000-0000-000000000000', d.instance.token
     assert_equal nil, d.instance.default_host

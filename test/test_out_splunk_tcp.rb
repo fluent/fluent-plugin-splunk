@@ -17,6 +17,7 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
   end
 
   CONFIG = %[
+    host 127.0.0.1
     port 8089
     event_key event
   ]
@@ -35,7 +36,7 @@ class SplunkTCPOutputTest < Test::Unit::TestCase
   ## query(port, 'source="SourceName"')
   test 'configure' do
     d = create_driver
-    assert_equal 'localhost', d.instance.host
+    assert_equal '127.0.0.1', d.instance.host
     assert_equal 8089, d.instance.port
     assert_equal 'raw', d.instance.format
     assert_equal 'event', d.instance.event_key
