@@ -1,10 +1,9 @@
 # out_splunk_hec - Splunk HTTP Event Collector Output Plugin
 
-This plugin is only for Fluentd Enterprise.
+** This plugin is only for Fluentd Enterprise.**
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
 * [Example Configuration](#example-configuration)
 * [Parameters](#parameters)
    * [type (required)](#type-required)
@@ -47,6 +46,7 @@ This plugin is only for Fluentd Enterprise.
 
   # ack parameter
   use_ack true
+  channel 8e69d7b3-f266-e9f3-2747-cc5b7f809897
   ack_retry 8
 
   # buffered output parameter
@@ -119,19 +119,19 @@ This is used as [channel identifier](http://dev.splunk.com/view/event-collector/
 
 The default: `1`
 
-Indicates how many seconds the plugin should wait between checks for Indexer acknowledgement.
+Specify how many seconds the plugin should wait between checks for Indexer acknowledgement.
 
 ### ack_retry_limit
 
 The default: `3`
 
-Indicates how many times the plugin check Indexer acknowledgement.
+Specify how many times the plugin check Indexer acknowledgement.
 
 ### raw
 
-Enables [raw mode](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#raw).
+Enable [raw mode](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#raw).
 
-On raw mode, the plugin can't configure metadata at event level and time metadata. So `*_key` options are ignored.
+On raw mode, the plugin can't configure metadata at event level and time metadata. So `*_key` and `use_fluentd_time` parameters are ignored.
 When this is set `true`, channel parameter must also be set.
 
 ### event_key

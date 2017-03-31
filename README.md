@@ -11,11 +11,13 @@
 ## [out_splunk_hec](/README.hec.md)
 
 Splunk HTTP Event Collector Output plugin
+
 http://dev.splunk.com/view/event-collector/SP-CAAAE6M
 
-### [out_splunk_tcp](/README.tcp.md)
+## [out_splunk_tcp](/README.tcp.md)
 
 Spplunk TCP inputs Output Plugin
+
 http://docs.splunk.com/Documentation/Splunk/latest/Data/Monitornetworkports
 
 ## Running tests
