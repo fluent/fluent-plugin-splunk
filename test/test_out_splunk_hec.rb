@@ -590,31 +590,46 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             end
           end
 
-          test 'with metadata and use_fluentd_time' do
+          test 'use_fluentd_time=false' do
             config = merge_config(test_config[:default_config_no_ack], %[
               raw false
               channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
               event_key splunk_event
               sourcetype fluentd_json_unixtime
-              default_host default_host_test
-              default_source DefaultSourceTest
-              default_index default_index_test
-              use_fluentd_time true
+              use_fluentd_time false
             ])
 
             d = create_driver(config)
-            time = Time.now.to_i - 100
-            event = {'time' => time, 'msg' => 'msg'}
+            time0 = Time.now.to_i - 100
+            time1 = time0 - 100
+            event = {'time' => time0, 'msg' => 'msg'}
             record = {'splunk_event' => event.to_json}
-            fluentd_time = time - 100
-            d.emit(record, fluentd_time)
+            d.emit(record, time1)
             d.run
             result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
-            assert_equal(fluentd_time, result['result']['_time'].to_i)
+            assert_equal(time0, result['result']['_time'].to_i)
             assert_equal('fluentd_json_unixtime', result['result']['sourcetype'])
-            assert_equal('default_host_test', result['result']['host'])
-            assert_equal('DefaultSourceTest', result['result']['source'])
-            assert_equal('default_index_test', result['result']['index'])
+            assert_equal(event, JSON.parse(result['result']['_raw']))
+          end
+
+          test 'use_fluentd_time=true' do
+            config = merge_config(test_config[:default_config_no_ack], %[
+              raw false
+              channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
+              event_key splunk_event
+              sourcetype fluentd_json_unixtime
+            ])
+
+            d = create_driver(config)
+            time0 = Time.now.to_i - 100
+            time1 = time0 - 100
+            event = {'time' => time0, 'msg' => 'msg'}
+            record = {'splunk_event' => event.to_json}
+            d.emit(record, time1)
+            d.run
+            result = get_events(test_config[:query_port], 'source="DefaultSourceTest"')[0]
+            assert_equal(time1, result['result']['_time'].to_i)
+            assert_equal('fluentd_json_unixtime', result['result']['sourcetype'])
             assert_equal(event, JSON.parse(result['result']['_raw']))
           end
         end
