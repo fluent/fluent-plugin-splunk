@@ -45,6 +45,10 @@ This plugin is only for Fluentd Enterprise.
 
   # buffered output parameter
   flush_interval 10s
+
+  # ssl parameter
+  use_ssl true
+  ca_file /path/to/ca.pem
 </match>
 ```
 
