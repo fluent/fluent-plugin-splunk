@@ -607,7 +607,8 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             d.emit(record, time1)
             d.run
             result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
-            assert_equal(time0, result['result']['_time'].to_i)
+            ## They don't use
+            assert_not_equal(time0, result['result']['_time'].to_i)
             assert_equal('fluentd_json_unixtime', result['result']['sourcetype'])
             assert_equal(event, JSON.parse(result['result']['_raw']))
           end
