@@ -82,7 +82,7 @@ If you set this, the value is set as host metadata.
 
 ### host_key
 
-If you set this, the value associated with this key in each records is used as host metadata. When the key is missing, `default_host` is used.
+If you set this, the value associated with this key in each record is used as host metadata. When the key is missing, `default_host` is used.
 
 ### defaout_source
 
@@ -90,7 +90,7 @@ If you set this, the value is set as source metadata.
 
 ### source_key
 
-If you set this, the value associated with this key in each records is used as source metadata. When the key is missing, `default_source` is used.
+If you set this, the value associated with this key in each record is used as source metadata. When the key is missing, `default_source` is used.
 
 ### default_index
 
@@ -98,7 +98,7 @@ If you set this, the value is set as index metadata.
 
 ### index_key
 
-If you set this, the value associated with this key in each records is used as index metadata. When the key is missing, `default_index` is used.
+If you set this, the value associated with this key in each record is used as index metadata. When the key is missing, `default_index` is used.
 
 ### sourcetype
 
@@ -108,7 +108,7 @@ If you set this, the value is set as sourcetype metadata.
 
 The default: `true`
 
-If set true, fleuntd's timestamp is used as time metadata. If the record already has its own time value, this options should be `false`.
+If set true, fluentd's timestamp is used as time metadata. If the record already has its own time value, this options should be `false`.
 
 ### use_ack
 
@@ -146,7 +146,7 @@ Example:
 
 ### event_key
 
-Only for raw mode. The value specified by this key is sent as event.
+Only for raw mode. The value specified by this key is sent as an event.
 When `raw` is set to `true`, this parameter is required.
 
 * fluentd record: `1490924392 {"log": "GET / HTTP/1.1 200"}`
@@ -156,7 +156,7 @@ When `raw` is set to `true`, this parameter is required.
 
 The default: `"\n"`
 
-The line breaker used when multiple records is sent at once.
+The line breaker used when multiple records are sent at once.
 
 ### use_ssl
 

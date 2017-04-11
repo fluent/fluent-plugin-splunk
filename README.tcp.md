@@ -103,7 +103,7 @@ The Splunk port.
 
 #### `raw` (the default)
 
-The value specified by `event_key` parameter is sent to Splunk as event.
+The value specified by `event_key` parameter is sent to Splunk as an event.
 If the key missing in a record, nothing is sent. 
 
 ##### Related parameters
@@ -148,7 +148,7 @@ The default: `true`
 
 If set to `true`, fluentd's timestamp is injected to the top of the record before sent to Splunk.
 
-For example, the first record record is converted to the next one.
+For example, the first record is converted to the next one.
 
 ```
 {"method": "GET", path: "/", code: 200}
@@ -158,7 +158,7 @@ For example, the first record record is converted to the next one.
 {"time": 1490862563, "method": "GET", path: "/", code: 200}
 ```
 
-If your record already have the column for timestamp, this parameter should be `false`.
+If your record already has the column for a timestamp, this parameter should be `false`.
 
 ### time_key
 
@@ -173,7 +173,7 @@ For `json` and `kv` format.
 The default: `unixtime`
 
 The format of timestamp which is inserted by `use_fluentd_time` parameter.
-You can specify strftime format or `unixtime` (unix timestamp as integer).
+You can specify a strftime format or `unixtime` (unix timestamp as integer).
 
 For example, 
 
@@ -196,13 +196,13 @@ the first record record is converted to the next one by this `time_format`.
 For `json` and `kv` format
 The default: `false`
 
-If `true`, use local time when the timestamp formatted as strftime format. Otherwize UTC is used.
+If `true`, use local time when the timestamp formatted as the strftime format. Otherwise UTC is used.
 
 ### line_breaker
 
 The default: `"\n"`
 
-The line breaker used when multiple records is sent at once.
+The line breaker used when multiple records are sent at once.
 
 ### use_ssl
 
