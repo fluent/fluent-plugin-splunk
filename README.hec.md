@@ -136,13 +136,21 @@ Specify how many times the plugin check Indexer acknowledgement.
 Enable [raw mode](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#raw).
 
 On raw mode, the plugin can't configure metadata at event level and time metadata. So `*_key` and `use_fluentd_time` parameters are ignored.
-When this is set `true`, channel parameter must also be set.
+When this is set `true`, `event_key` and `channel` parameter must also be set.
+
+Example:
+
+* configuration: `raw = true, event_key = "log"`
+* fluentd record: `1490924392 {"foo": "bar", "log": "GET / HTTP/1.1 200"}`
+* sent as: `GET / HTTP/1.1 200`
 
 ### event_key
 
-Specify the key for raw event message. 
-On raw mode, the value specified by this key is sent as event. Otherwise, the value and metadata is sent.
+Only for raw mode. The value specified by this key is sent as event.
 When `raw` is set to `true`, this parameter is required.
+
+* fluentd record: `1490924392 {"log": "GET / HTTP/1.1 200"}`
+* sent as: `GET / HTTP/1.1 200`
 
 ### line_breaker
 

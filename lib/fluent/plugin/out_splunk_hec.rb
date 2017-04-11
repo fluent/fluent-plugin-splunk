@@ -96,8 +96,7 @@ module Fluent
     end
 
     def format_event(time, record)
-      event = @event_key ? (record[@event_key] || '') : record
-      msg = {'event' => event}
+      msg = {'event' => record}
       msg['time'] = time if @use_fluentd_time
 
       # metadata
