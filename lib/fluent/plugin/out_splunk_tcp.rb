@@ -11,8 +11,8 @@ module Fluent
   class SplunkTCPOutput < ObjectBufferedOutput
     Fluent::Plugin.register_output('splunk_tcp', self)
 
-    config_param :host, :string, required: true
-    config_param :port, :integer, required: true
+    config_param :host, :string
+    config_param :port, :integer
 
     config_param :format, :string, default: 'raw'
 
