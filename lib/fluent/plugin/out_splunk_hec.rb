@@ -8,9 +8,9 @@ module Fluent
   class SplunkHECOutput < ObjectBufferedOutput
     Fluent::Plugin.register_output('splunk_hec', self)
 
-    config_param :host, :string, required: true
-    config_param :port, :integer, required: true
-    config_param :token, :string, required: true
+    config_param :host, :string
+    config_param :port, :integer
+    config_param :token, :string
 
     # for metadata
     config_param :default_host, :string, default: nil
