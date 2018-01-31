@@ -10,7 +10,7 @@ if [ "$COMMAND" = "login" ]; then
     else
       PROFILE=""
     fi
-    $(aws $PROFILE ecr get-login --region us-east-1)
+    $(aws $PROFILE ecr get-login --region us-east-1 --no-include-email)
     exit 0
 fi
 
