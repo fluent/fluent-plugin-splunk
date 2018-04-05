@@ -70,9 +70,7 @@ COPY etc_tcp/apps/splunk_httpinput/local/inputs.conf ${SPLUNK_HOME_TCP}/etc/apps
 COPY etc_ssl/apps/splunk_httpinput/local/inputs.conf ${SPLUNK_HOME_SSL}/etc/apps/splunk_httpinput/local/inputs.conf
 
 COPY etc_tcp/apps/search/local/inputs.conf ${SPLUNK_HOME_TCP}/etc/apps/search/local/inputs.conf
-COPY etc_tcp/apps/search/local/props.conf ${SPLUNK_HOME_TCP}/etc/apps/search/local/props.conf
 COPY etc_ssl/apps/search/local/inputs.conf ${SPLUNK_HOME_SSL}/etc/apps/search/local/inputs.conf
-COPY etc_ssl/apps/search/local/props.conf ${SPLUNK_HOME_SSL}/etc/apps/search/local/props.conf
 
 COPY etc_ssl/auth/server.pem ${SPLUNK_HOME_SSL}/etc/auth/server.pem
 COPY etc_ssl/auth/cacert.pem ${SPLUNK_HOME_SSL}/etc/auth/cacert.pem
