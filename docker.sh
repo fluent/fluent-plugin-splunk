@@ -5,12 +5,12 @@ set -euxo pipefail
 COMMAND=$1
 
 if [ "$COMMAND" = "login" ]; then
-   if [ -z "${CI:-}" ]; then
-      PROFILE="--profile engineering"
+    if [ -z "${CI:-}" ]; then
+      OPTS="--profile engineering --no-include-email"
     else
-      PROFILE=""
+      OPTS=""
     fi
-    $(aws $PROFILE ecr get-login --region us-east-1)
+    $(aws ecr get-login --region us-east-1 $OPTS)
     exit 0
 fi
 

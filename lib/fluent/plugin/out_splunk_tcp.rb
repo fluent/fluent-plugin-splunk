@@ -35,6 +35,13 @@ module Fluent
     config_param :client_key, :string, default: nil
     config_param :client_key_pass, :string, default: nil
 
+    def implement?(feature)
+      if feature == :custom_format
+        return false
+      end
+      super
+    end
+
     def configure(conf)
       super
 
