@@ -5,21 +5,14 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 Gem::Specification.new do |spec|
   spec.name          = "fluent-plugin-splunk"
   spec.version       = "1.0.0"
-  spec.authors       = ["Yuki Ito"]
-  spec.email         = ["yito@treasure-data.com"]
+  spec.authors       = ["Yuki Ito", "Masahiro Nakagawa"]
+  spec.email         = ["yito@treasure-data.com", "repeatedly@gmail.com"]
 
   spec.summary       = %q{Splunk output plugin for Fluentd}
   spec.description   = spec.summary
   spec.homepage      = ""
-
-  # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
-  # to allow pushing to a single host or delete this section to allow pushing to any host.
-  if spec.respond_to?(:metadata)
-    spec.metadata['allowed_push_host'] = "TODO: Set to 'http://mygemserver.com'"
-  else
-    raise "RubyGems 2.0 or newer is required to protect against " \
-      "public gem pushes."
-  end
+  spec.has_rdoc      = false
+  spec.license       = "Apache-2.0"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
