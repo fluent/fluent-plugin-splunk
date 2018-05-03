@@ -1,7 +1,5 @@
 # out_splunk_hec - Splunk HTTP Event Collector Output Plugin
 
-**This plugin is only for Fluentd Enterprise.**
-
 ## Table of Contents
 
 * [Example Configuration](#example-configuration)
