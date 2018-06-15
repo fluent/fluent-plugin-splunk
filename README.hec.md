@@ -52,7 +52,7 @@
   ca_file /path/to/ca.pem
 
   # buffered output parameter
-  buffer 10s
+  flush_interval 10s
 </match>
 ```
 
