@@ -120,7 +120,7 @@ module Fluent
         msg['index'] = @default_index
       end
 
-      msg.to_json + "\n"
+      Yajl.dump(msg) + "\n"
     end
 
     def format_event_raw(record)
