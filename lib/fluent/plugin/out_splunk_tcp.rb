@@ -90,7 +90,10 @@ module Fluent
       payload = ''
       chunk.msgpack_each do |time, record|
         event = @formatter.call(time, record)
-        payload << (event + @line_breaker) unless event.empty?
+        unless event.empty?
+          payload << event
+          payload << @line_breaker
+        end
       end
 
       unless payload.empty?

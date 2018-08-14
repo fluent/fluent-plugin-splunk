@@ -120,7 +120,9 @@ module Fluent
         msg['index'] = @default_index
       end
 
-      Yajl.dump(msg) + "\n"
+      res = Yajl.dump(msg)
+      res << @line_breaker
+      res
     end
 
     def format_event_raw(record)
