@@ -56,9 +56,9 @@ module Fluent
       case @format
       when 'json'
         if @use_fluentd_time
-          @formatter = lambda {|time, record| insert_time_to_front(time, record).to_json }
+          @formatter = lambda {|time, record| Yajl.dump(insert_time_to_front(time, record)) }
         else
-          @formatter = lambda {|_time, record| record.to_json }
+          @formatter = lambda {|_time, record| Yajl.dump(record) }
         end
       when 'kv'
         if @use_fluentd_time
@@ -90,7 +90,10 @@ module Fluent
       payload = ''
       chunk.msgpack_each do |time, record|
         event = @formatter.call(time, record)
-        payload << (event + @line_breaker) unless event.empty?
+        unless event.empty?
+          payload << event
+          payload << @line_breaker
+        end
       end
 
       unless payload.empty?
