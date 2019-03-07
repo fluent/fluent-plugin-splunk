@@ -109,6 +109,7 @@ module Fluent
         msg['host'] = record[@host_key]
         if @remove_host_key
             record.delete(@host_key)
+        end
       elsif @default_host
         msg['host'] = @default_host
       end
@@ -117,6 +118,7 @@ module Fluent
         msg['source'] = record[@source_key]
         if @remove_source_key
             record.delete(@source_key)
+        end
       elsif @default_source
         msg['source'] = @default_source
       end
@@ -125,6 +127,7 @@ module Fluent
         msg['index'] = record[@index_key]
         if @remove_index_key
             record.delete(@index_key)
+        end
       elsif @default_index
         msg['index'] = @default_index
       end
