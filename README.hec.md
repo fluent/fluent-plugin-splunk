@@ -82,13 +82,21 @@ If you set this, the value is set as host metadata.
 
 If you set this, the value associated with this key in each record is used as host metadata. When the key is missing, `default_host` is used.
 
-### defaout_source
+### remove_host_key
+
+If you set this, the field specified by the `host_key` will be removed
+
+### default_source
 
 If you set this, the value is set as source metadata.
 
 ### source_key
 
 If you set this, the value associated with this key in each record is used as source metadata. When the key is missing, `default_source` is used.
+
+### remove_source_key
+
+If you set this, the field specified by the `source_key` will be removed
 
 ### default_index
 
@@ -97,6 +105,10 @@ If you set this, the value is set as index metadata.
 ### index_key
 
 If you set this, the value associated with this key in each record is used as index metadata. When the key is missing, `default_index` is used.
+
+### remove_index_key
+
+If you set this, the field specified by the `index_key` will be removed
 
 ### sourcetype
 
