@@ -106,28 +106,19 @@ module Fluent
       msg['sourcetype'] = @sourcetype if @sourcetype
 
       if record[@host_key]
-        msg['host'] = record[@host_key]
-        if @remove_host_key
-            record.delete(@host_key)
-        end        
+        msg['host'] = @remove_host_key ? record.delete(@host_key) : record[@host_key]
       elsif @default_host
         msg['host'] = @default_host
       end
 
       if record[@source_key]
-        msg['source'] = record[@source_key]
-        if @remove_source_key
-            record.delete(@source_key)
-        end        
+        msg['source'] =  @remove_source_key ? record.delete(@source_key) : record[@source_key]
       elsif @default_source
         msg['source'] = @default_source
       end
 
       if record[@index_key]
-        msg['index'] = record[@index_key]
-        if @remove_index_key
-            record.delete(@index_key)
-        end
+        msg['index'] = @remove_index_key ? record.delete(@index_key) : record[@index_key]
       elsif @default_index
         msg['index'] = @default_index
       end
