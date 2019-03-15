@@ -1,3 +1,9 @@
+# Release v0.9.2 - 2019/03/14
+
+## Enhancements
+
+* out_splunk_hec: Add `remove_host_key`, `remove_source_key` and `remove_index_key`
+
 # Release v0.9.1 - 2018/08/14
 
 ## New Features

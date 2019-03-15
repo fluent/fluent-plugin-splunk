@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = "fluent-plugin-splunk-enterprise"
-  spec.version       = "0.9.1"
+  spec.version       = "0.9.2"
   spec.authors       = ["Yuki Ito", "Masahiro Nakagawa"]
   spec.email         = ["yito@treasure-data.com", "repeatedly@gmail.com"]
 
