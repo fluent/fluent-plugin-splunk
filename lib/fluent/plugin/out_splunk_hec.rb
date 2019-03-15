@@ -15,12 +15,15 @@ module Fluent
     # for metadata
     config_param :default_host, :string, default: nil
     config_param :host_key, :string, default: nil
+    config_param :remove_host_key, :bool, default: false
     config_param :default_source, :string, default: nil
     config_param :source_key, :string, default: nil
+    config_param :remove_source_key, :bool, default: false
     config_param :default_index, :string, default: nil
     config_param :index_key, :string, default: nil
+    config_param :remove_index_key, :bool, default: false
     config_param :sourcetype, :string, default: nil
-    config_param :use_fluentd_time, :bool, default: true
+    config_param :use_fluentd_time, :bool, default: true    
 
     # for Indexer acknowledgement
     config_param :use_ack, :bool, default: false
@@ -103,19 +106,19 @@ module Fluent
       msg['sourcetype'] = @sourcetype if @sourcetype
 
       if record[@host_key]
-        msg['host'] = record[@host_key]
+        msg['host'] = @remove_host_key ? record.delete(@host_key) : record[@host_key]
       elsif @default_host
         msg['host'] = @default_host
       end
 
       if record[@source_key]
-        msg['source'] = record[@source_key]
+        msg['source'] =  @remove_source_key ? record.delete(@source_key) : record[@source_key]
       elsif @default_source
         msg['source'] = @default_source
       end
 
       if record[@index_key]
-        msg['index'] = record[@index_key]
+        msg['index'] = @remove_index_key ? record.delete(@index_key) : record[@index_key]
       elsif @default_index
         msg['index'] = @default_index
       end
