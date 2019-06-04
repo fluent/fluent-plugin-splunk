@@ -14,7 +14,10 @@
    * [source_key](#source_key)
    * [default_index](#default_index)
    * [index_key](#index_key)
+   * [default_sourcetype](#default_sourcetype)
    * [sourcetype](#sourcetype)
+   * [sourcetype_key](#sourcetype_key)
+   * [remove_sourcetype_key](#remove_sourcetype_key)
    * [use_fluentd_time](#use_fluentd_time)
    * [use_ack](#use_ack)
    * [channel](#channel)
@@ -110,9 +113,21 @@ If you set this, the value associated with this key in each record is used as in
 
 If you set this, the field specified by the `index_key` will be removed
 
+### default_sourcetype
+
+If you set this, the value is set as sourcetype metadata if `sourcetype_key` is not set or not found in the record.
+
 ### sourcetype
 
-If you set this, the value is set as sourcetype metadata.
+Deprecated. Same as `default_sourcetype`, kept for backwards compability.
+
+### sourcetype_key
+
+If you set this, the value associated with this key in each record is used as sourcetype metadata. When the key is missing, `default_sourcetype` is used.
+
+### remove_sourcetype_key
+
+If you set this, the field specified by the `sourcetype_key` will be removed
 
 ### use_fluentd_time
 
