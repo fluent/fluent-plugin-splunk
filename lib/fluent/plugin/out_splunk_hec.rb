@@ -22,7 +22,7 @@ module Fluent
     config_param :default_index, :string, default: nil
     config_param :index_key, :string, default: nil
     config_param :remove_index_key, :bool, default: false
-    config_param :sourcetype, :string, default: nil
+    config_param :sourcetype, :string, default: nil, deprecated: "Use default_sourcetype instead"
     config_param :default_sourcetype, :string, default: nil
     config_param :sourcetype_key, :string, default: nil
     config_param :remove_sourcetype_key, :bool, default: false
