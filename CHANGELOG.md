@@ -1,3 +1,7 @@
+# Release v0.9.3 - 2019/06/06
+
+* out_splunk_hec: Improve sourcetype usage by adding `default_sourcetype`, `sourcetype_key` and `remove_sourcetype_key`
+
 # Release v0.9.2 - 2019/03/14
 
 ## Enhancements
