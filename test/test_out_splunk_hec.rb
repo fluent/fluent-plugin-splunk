@@ -47,6 +47,8 @@ class SplunkHECOutputTest < Test::Unit::TestCase
     assert_equal nil, d.instance.default_index
     assert_equal nil, d.instance.index_key
     assert_equal nil, d.instance.sourcetype
+    assert_equal nil, d.instance.default_sourcetype
+    assert_equal nil, d.instance.sourcetype_key
     assert_equal false, d.instance.use_ack
     assert_equal nil, d.instance.channel
     assert_equal 1, d.instance.ack_interval
@@ -356,6 +358,79 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
 
+        test 'default_sourcetype' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_sourcetype DefaultSourcetypeTest
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i - 100
+          d.emit(event, time)
+          d.run
+          result = get_events(test_config[:query_port], 'sourcetype="DefaultSourcetypeTest"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'sourcetype_key is found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            sourcetype_key key_for_sourcetype
+          ])
+          d = create_driver(config)
+          event = {'key_for_sourcetype' => 'SourcetypeKeyTest', 'test' => SecureRandom.hex}
+          time = Time.now.to_i - 100
+          d.emit(event, time)
+          d.run
+          result = get_events(test_config[:query_port], 'sourcetype="SourcetypeKeyTest"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'sourcetype_key is not found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            sourcetype_key key_for_sourcetype
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i - 100
+          d.emit(event, time)
+          d.run
+          result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'both default_sourcetype and sourcetype_key when sourcetype_key is found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_sourcetype DefaultSourcetypeTest
+            sourcetype_key key_for_sourcetype
+          ])
+          d = create_driver(config)
+          event = {'key_for_sourcetype' => 'SourcetypeKeyTest', 'test' => SecureRandom.hex}
+          time = Time.now.to_i - 100
+          d.emit(event, time)
+          d.run
+          result = get_events(test_config[:query_port], 'sourcetype="SourcetypeKeyTest"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        test 'both default_sourcetype and sourcetype_key when sourcetype_key is not found' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            default_sourcetype DefaultSourcetypeTest
+            sourcetype_key key_for_sourcetype
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Time.now.to_i - 100
+          d.emit(event, time)
+          d.run
+          result = get_events(test_config[:query_port], 'sourcetype="DefaultSourcetypeTest"')[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
+
+        # Backward compability (sourcetype) test
         test 'source_type = sourcetype_test' do
           config = merge_config(test_config[:default_config_no_ack], %[
             sourcetype sourcetype_test

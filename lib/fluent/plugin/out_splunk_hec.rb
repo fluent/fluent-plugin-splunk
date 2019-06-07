@@ -22,7 +22,10 @@ module Fluent
     config_param :default_index, :string, default: nil
     config_param :index_key, :string, default: nil
     config_param :remove_index_key, :bool, default: false
-    config_param :sourcetype, :string, default: nil
+    config_param :sourcetype, :string, default: nil, deprecated: "Use default_sourcetype instead"
+    config_param :default_sourcetype, :string, default: nil
+    config_param :sourcetype_key, :string, default: nil
+    config_param :remove_sourcetype_key, :bool, default: false
     config_param :use_fluentd_time, :bool, default: true    
 
     # for Indexer acknowledgement
@@ -52,6 +55,8 @@ module Fluent
       raise ConfigError, "'ack_interval' parameter must be a non negative integer" if @use_ack && @ack_interval < 0
       raise ConfigError, "'event_key' parameter is required when 'raw' is true" if @raw && !@event_key
       raise ConfigError, "'channel' parameter is required when 'raw' is true" if @raw && !@channel
+      
+      @default_sourcetype = @sourcetype if @sourcetype && !@default_sourcetype
 
       # build hash for query string
       if @raw
@@ -59,7 +64,7 @@ module Fluent
         @query['host'] = @default_host if @default_host
         @query['source'] = @default_source if @default_source
         @query['index'] = @default_index if @default_index
-        @query['sourcetype'] = @sourcetype if @sourcetype
+        @query['sourcetype'] = @default_sourcetype if @default_sourcetype
       end
     end
 
@@ -103,7 +108,11 @@ module Fluent
       msg['time'] = time if @use_fluentd_time
 
       # metadata
-      msg['sourcetype'] = @sourcetype if @sourcetype
+      if record[@sourcetype_key]
+        msg['sourcetype'] = @remove_sourcetype_key ? record.delete(@sourcetype_key) : record[@sourcetype_key]
+      elsif @default_sourcetype
+        msg['sourcetype'] = @default_sourcetype
+      end
 
       if record[@host_key]
         msg['host'] = @remove_host_key ? record.delete(@host_key) : record[@host_key]
