@@ -11,7 +11,6 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Splunk output plugin for Fluentd}
   spec.description   = spec.summary
   spec.homepage      = ""
-  spec.has_rdoc      = false
   spec.license       = "Apache-2.0"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
