@@ -445,6 +445,21 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           assert_equal('sourcetype_test', result['result']['_sourcetype'])
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
+
+        test '_time is sent with nano seconds when use_fluentd_time is true and time_as_integer is false' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            use_fluentd_time true
+            time_as_integer false
+          ])
+          d = create_driver(config)
+          event = {'test' => SecureRandom.hex}
+          time = Fluent::EventTime.new(1560349063, 576000000)
+          d.emit(event, time)
+          d.run
+          result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
+          assert_equal(1560349063.576, result['result']['_time'].to_f)
+          assert_equal(event, JSON.parse(result['result']['_raw']))
+        end
       end
 
       if SPLUNK_VERSION >= to_version('6.4.0')

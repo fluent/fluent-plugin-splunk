@@ -105,7 +105,9 @@ module Fluent
 
     def format_event(time, record)
       msg = {'event' => record}
-      msg['time'] = time if @use_fluentd_time
+      if @use_fluentd_time
+        msg['time'] = time.respond_to?('to_f') ? time.to_f : time
+      end
 
       # metadata
       if record[@sourcetype_key]
