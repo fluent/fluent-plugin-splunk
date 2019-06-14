@@ -32,8 +32,8 @@ Available Splunk versions in tests are `6.5.2`, `6.4.6`, `6.3.9`, `6,2.12`, `6.1
 Start a docker instance Splunk.
 
 ```
-$ ./docker.sh login
-$ ./docker.sh debug_run <splunk_version>
+$ ./docker.sh build <splunk_version>
+$ ./docker.sh run <splunk_version>
 ```
 
 Run tests.
