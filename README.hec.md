@@ -19,6 +19,7 @@
    * [sourcetype_key](#sourcetype_key)
    * [remove_sourcetype_key](#remove_sourcetype_key)
    * [use_fluentd_time](#use_fluentd_time)
+   * [time_as_integer](#time_as_integer) 
    * [use_ack](#use_ack)
    * [channel](#channel)
    * [ack_interval](#ack_interval)
@@ -134,6 +135,12 @@ If you set this, the field specified by the `sourcetype_key` will be removed
 The default: `true`
 
 If set true, fluentd's timestamp is used as time metadata. If the record already has its own time value, this options should be `false`.
+
+### time_as_integer
+
+The default: `true`
+
+Only used when `use_fluentd_time` is `true`. If set to `true` (default), time will be sent as integer seconds to Splunk, whereas if set to `false`, it will be sent with nano seconds.
 
 ### use_ack
 
