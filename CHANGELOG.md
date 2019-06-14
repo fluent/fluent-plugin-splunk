@@ -1,3 +1,7 @@
+# Release v0.10.0 - 2019/06/13
+
+* out_splunk_hec: Send time with nano seconds if possible when `use_fluentd_time` is set to true
+
 # Release v0.9.3 - 2019/06/06
 
 * out_splunk_hec: Improve sourcetype usage by adding `default_sourcetype`, `sourcetype_key` and `remove_sourcetype_key`
