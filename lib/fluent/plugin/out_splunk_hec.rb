@@ -1,6 +1,7 @@
 require 'fluent/output'
 require 'httpclient'
 require 'json'
+require 'securerandom'
 
 # http://dev.splunk.com/view/event-collector/SP-CAAAE6P
 
@@ -30,7 +31,7 @@ module Fluent
 
     # for Indexer acknowledgement
     config_param :use_ack, :bool, default: false
-    config_param :channel, :string, default: nil
+    config_param :channel, :string, default: SecureRandom.uuid
     config_param :ack_interval, :integer, default: 1
     config_param :ack_retry_limit, :integer, default: 3
 

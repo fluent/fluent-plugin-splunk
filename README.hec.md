@@ -146,10 +146,10 @@ Only used when `use_fluentd_time` is `true`. If set to `true` (default), time wi
 
 Enable/Disable [Indexer acknowledgement](https://www.google.co.jp/search?q=splunk+http+ack&oq=splunk+http+ack&aqs=chrome..69i57j69i60l2.2725j0j9&sourceid=chrome&ie=UTF-8). When this is set `true`, `channel` parameter is required.
 
-### channel
+### channel(optional)
 
 This is used as [channel identifier](http://dev.splunk.com/view/event-collector/SP-CAAAE8X#aboutchannels).
- When you set `use_ack` or `raw`, this parameter is required.
+ When you set `use_ack` or `raw`, this parameter is auto generated if not set.
 
 ### ack_interval
 
