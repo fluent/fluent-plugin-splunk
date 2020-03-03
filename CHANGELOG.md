@@ -1,3 +1,7 @@
+# Release v0.10.1 - 2020/03/03
+
+* output: Support v1 multi-workers
+
 # Release v0.10.0 - 2019/06/13
 
 * out_splunk_hec: Send time with nano seconds if possible when `use_fluentd_time` is set to true
