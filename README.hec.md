@@ -49,7 +49,7 @@
   # ack parameter
   use_ack true
   channel 8e69d7b3-f266-e9f3-2747-cc5b7f809897
-  ack_retry 8
+  ack_retry_limit 8
 
   # ssl parameter
   use_ssl true
