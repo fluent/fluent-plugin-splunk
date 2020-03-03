@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'json'
   spec.add_dependency 'httpclient'
 
-  spec.add_development_dependency "rake", "~> 10.0"
+  spec.add_development_dependency "rake", ">= 12.3.3"
   spec.add_development_dependency "test-unit", ">= 3.0.8"
   spec.add_development_dependency "simplecov", ">= 0.10.0"
 end
