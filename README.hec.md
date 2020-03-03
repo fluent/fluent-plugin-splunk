@@ -2,43 +2,38 @@
 
 ## Table of Contents
 
-- [out_splunk_hec - Splunk HTTP Event Collector Output Plugin](#outsplunkhec---splunk-http-event-collector-output-plugin)
-  - [Table of Contents](#table-of-contents)
-  - [Example Configuration](#example-configuration)
-  - [Parameters](#parameters)
-    - [type (required)](#type-required)
-    - [host (required)](#host-required)
-    - [port (required)](#port-required)
-    - [token (required)](#token-required)
-    - [default_host](#defaulthost)
-    - [host_key](#hostkey)
-    - [remove_host_key](#removehostkey)
-    - [default_source](#defaultsource)
-    - [source_key](#sourcekey)
-    - [remove_source_key](#removesourcekey)
-    - [default_index](#defaultindex)
-    - [index_key](#indexkey)
-    - [remove_index_key](#removeindexkey)
-    - [default_sourcetype](#defaultsourcetype)
-    - [sourcetype](#sourcetype)
-    - [sourcetype_key](#sourcetypekey)
-    - [remove_sourcetype_key](#removesourcetypekey)
-    - [use_fluentd_time](#usefluentdtime)
-    - [time_as_integer](#timeasinteger)
-    - [use_ack](#useack)
-    - [channel](#channel)
-    - [auto_generate_channel(optional)](#autogeneratechanneloptional)
-    - [ack_interval](#ackinterval)
-    - [ack_retry_limit](#ackretrylimit)
-    - [raw](#raw)
-    - [event_key](#eventkey)
-    - [line_breaker](#linebreaker)
-    - [use_ssl](#usessl)
-    - [ssl_verify](#sslverify)
-    - [ca_file](#cafile)
-    - [client_cert](#clientcert)
-    - [client_key](#clientkey)
-    - [client_key_pass](#clientkeypass)
+* [Example Configuration](#example-configuration)
+* [Parameters](#parameters)
+   * [type (required)](#type-required)
+   * [host (required)](#host-required)
+   * [port (required)](#port-required)
+   * [token (required)](#token-required)
+   * [default_host](#default_host)
+   * [host_key](#host_key)
+   * [defaout_source](#defaout_source)
+   * [source_key](#source_key)
+   * [default_index](#default_index)
+   * [index_key](#index_key)
+   * [default_sourcetype](#default_sourcetype)
+   * [sourcetype](#sourcetype)
+   * [sourcetype_key](#sourcetype_key)
+   * [remove_sourcetype_key](#remove_sourcetype_key)
+   * [use_fluentd_time](#use_fluentd_time)
+   * [time_as_integer](#time_as_integer) 
+   * [use_ack](#use_ack)
+   * [channel](#channel)
+   * [auto_generate_channel(optional)](#autogeneratechanneloptional)
+   * [ack_interval](#ack_interval)
+   * [ack_retry_limit](#ack_retry_limit)
+   * [raw](#raw)
+   * [event_key](#event_key)
+   * [line_breaker](#line_breaker)
+   * [use_ssl](#use_ssl)
+   * [ssl_verify](#ssl_verify)
+   * [ca_file](#ca_file)
+   * [client_cert](#client_cert)
+   * [client_key](#client_key)
+   * [client_key_pass](#client_key_pass)
 
 ## Example Configuration
 
@@ -55,7 +50,7 @@
   # ack parameter
   use_ack true
   channel 8e69d7b3-f266-e9f3-2747-cc5b7f809897
-  ack_retry 8
+  ack_retry_limit 8
 
   # ssl parameter
   use_ssl true
@@ -158,7 +153,7 @@ This is used as [channel identifier](http://dev.splunk.com/view/event-collector/
  When you set `use_ack` or `raw`, this parameter is required.
 
 ### auto_generate_channel(optional)
-This is used as auto generate channel, channel param is ignored if this param is set to true, default vaule is false.
+ This is used as auto generate channel, channel param is ignored if this param is set to true, default vaule is false.
 
 ### ack_interval
 
