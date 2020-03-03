@@ -31,7 +31,8 @@ module Fluent
 
     # for Indexer acknowledgement
     config_param :use_ack, :bool, default: false
-    config_param :channel, :string, default: SecureRandom.uuid
+    config_param :channel, :string, default: nil
+    config_param :auto_generate_channel, :string, default: false
     config_param :ack_interval, :integer, default: 1
     config_param :ack_retry_limit, :integer, default: 3
 
@@ -52,12 +53,13 @@ module Fluent
 
     def configure(conf)
       super
-      raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
+      raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@auto_generate_channel && !@channel
       raise ConfigError, "'ack_interval' parameter must be a non negative integer" if @use_ack && @ack_interval < 0
       raise ConfigError, "'event_key' parameter is required when 'raw' is true" if @raw && !@event_key
-      raise ConfigError, "'channel' parameter is required when 'raw' is true" if @raw && !@channel
+      raise ConfigError, "'channel' parameter is required when 'raw' is true" if @raw && !@auto_generate_channel && !@channel
       
       @default_sourcetype = @sourcetype if @sourcetype && !@default_sourcetype
+      @mychannel = @auto_generate_channel ? SecureRandom.uuid : @channel
 
       # build hash for query string
       if @raw
@@ -92,7 +94,7 @@ module Fluent
     def setup_client
       header = {'Content-type' => 'application/json',
                 'Authorization' => "Splunk #{@token}"}
-      header['X-Splunk-Request-Channel'] = @channel if @channel
+      header['X-Splunk-Request-Channel'] = @mychannel
       base_url = @use_ssl ? URI::HTTPS.build(host: @host, port: @port) : URI::HTTP.build(host: @host, port: @port)
       @client = HTTPClient.new(default_header: header,
                                base_url: base_url)
