@@ -68,6 +68,10 @@ module Fluent
       end
     end
 
+    def multi_workers_ready?
+      true
+    end
+
     def start
       setup_client
       super
