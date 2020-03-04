@@ -22,7 +22,7 @@
    * [time_as_integer](#time_as_integer) 
    * [use_ack](#use_ack)
    * [channel](#channel)
-   * [auto_generate_channel](#autogeneratechannel)
+   * [auto_generate_channel](#auto_generate_channel)
    * [ack_interval](#ack_interval)
    * [ack_retry_limit](#ack_retry_limit)
    * [raw](#raw)
