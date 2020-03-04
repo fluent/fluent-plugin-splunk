@@ -54,6 +54,10 @@ module Fluent
     def configure(conf)
       super
 
+      if @channel && @auto_generate_channel 
+        log.warn "Both channel and auto_generate_channel are set.. ignoring channel param and auto generating channel instead"
+      end
+
       @channel = SecureRandom.uuid if @auto_generate_channel
 
       raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
