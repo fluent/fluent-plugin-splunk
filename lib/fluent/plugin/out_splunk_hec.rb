@@ -96,7 +96,7 @@ module Fluent
     def setup_client
       header = {'Content-type' => 'application/json',
                 'Authorization' => "Splunk #{@token}"}
-      header['X-Splunk-Request-Channel'] = @channel
+      header['X-Splunk-Request-Channel'] = @channel if @channel
       base_url = @use_ssl ? URI::HTTPS.build(host: @host, port: @port) : URI::HTTP.build(host: @host, port: @port)
       @client = HTTPClient.new(default_header: header,
                                base_url: base_url)
