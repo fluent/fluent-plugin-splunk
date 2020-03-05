@@ -1,3 +1,7 @@
+# Release v0.10.2 - 2020/03/04
+
+* out_splunk_hec: Add `auto_generate_channel` parameter
+
 # Release v0.10.1 - 2020/03/03
 
 * output: Support v1 multi-workers
