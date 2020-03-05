@@ -22,6 +22,7 @@
    * [time_as_integer](#time_as_integer) 
    * [use_ack](#use_ack)
    * [channel](#channel)
+   * [auto_generate_channel](#auto_generate_channel)
    * [ack_interval](#ack_interval)
    * [ack_retry_limit](#ack_retry_limit)
    * [raw](#raw)
@@ -150,6 +151,11 @@ Enable/Disable [Indexer acknowledgement](https://www.google.co.jp/search?q=splun
 
 This is used as [channel identifier](http://dev.splunk.com/view/event-collector/SP-CAAAE8X#aboutchannels).
  When you set `use_ack` or `raw`, this parameter is required.
+
+### auto_generate_channel
+ The default: `false`
+
+ This is used as auto generate channel, channel param is ignored if this param is set to true.
 
 ### ack_interval
 

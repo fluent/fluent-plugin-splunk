@@ -1,6 +1,7 @@
 require 'fluent/output'
 require 'httpclient'
 require 'json'
+require 'securerandom'
 
 # http://dev.splunk.com/view/event-collector/SP-CAAAE6P
 
@@ -31,6 +32,7 @@ module Fluent
     # for Indexer acknowledgement
     config_param :use_ack, :bool, default: false
     config_param :channel, :string, default: nil
+    config_param :auto_generate_channel, :bool, default: false
     config_param :ack_interval, :integer, default: 1
     config_param :ack_retry_limit, :integer, default: 3
 
@@ -51,6 +53,13 @@ module Fluent
 
     def configure(conf)
       super
+
+      if @channel && @auto_generate_channel 
+        log.warn "Both channel and auto_generate_channel are set.. ignoring channel param and auto generating channel instead"
+      end
+
+      @channel = SecureRandom.uuid if @auto_generate_channel
+
       raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
       raise ConfigError, "'ack_interval' parameter must be a non negative integer" if @use_ack && @ack_interval < 0
       raise ConfigError, "'event_key' parameter is required when 'raw' is true" if @raw && !@event_key
