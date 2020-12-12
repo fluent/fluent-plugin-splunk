@@ -10,7 +10,7 @@
    * [token (required)](#token-required)
    * [default_host](#default_host)
    * [host_key](#host_key)
-   * [defaout_source](#defaout_source)
+   * [default_source](#default_source)
    * [source_key](#source_key)
    * [default_index](#default_index)
    * [index_key](#index_key)
