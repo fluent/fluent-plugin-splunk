@@ -153,7 +153,12 @@ module Fluent
     end
 
     def format_event_raw(record)
-      (record[@event_key] || '') + @line_breaker
+      if record[@event_key] and not record[@event_key].strip.empty?
+        record[@event_key] + @line_breaker
+      else
+        log.debug "Discarding empty line"
+        ''
+      end
     end
 
     def post(path, body, query = {})

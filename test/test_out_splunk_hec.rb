@@ -558,6 +558,25 @@ class SplunkHECOutputTest < Test::Unit::TestCase
             result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
             assert_equal(event, JSON.parse(result['result']['_raw']))
           end
+
+          test 'with empty statement' do
+              config = merge_config(test_config[:default_config_no_ack], %[
+                raw true
+                channel #{[SecureRandom.hex(4), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(2), SecureRandom.hex(6)].join('-')}
+                event_key splunk_event
+              ])
+
+              d = create_driver(config)
+              time = Time.now.to_i - 100
+              event = "raw event"
+              record1 = {'splunk_event' => " "}
+              record2 = {'splunk_event' => event}
+              d.emit(record1, time)
+              d.emit(record2, time)
+              d.run
+              result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
+              assert_equal(event, result['result']['_raw'])
+            end
         end
       end
     end
