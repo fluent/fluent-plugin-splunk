@@ -117,7 +117,12 @@ module Fluent
     end
 
     def format_event(time, record)
-      msg = {'event' => record}
+      if @event_key
+        msg = {'event' => (record[@event_key] || '')}
+      else
+        msg = {'event' => record}
+      end
+
       if @use_fluentd_time
         msg['time'] = time.respond_to?('to_f') ? time.to_f : time
       end

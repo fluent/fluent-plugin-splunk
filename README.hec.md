@@ -184,10 +184,12 @@ Example:
 
 ### event_key
 
-Only for raw mode. The value specified by this key is sent as an event.
+The value specified by this key is sent as an event.
+All other keys are discarded.
 When `raw` is set to `true`, this parameter is required.
 
 * fluentd record: `1490924392 {"log": "GET / HTTP/1.1 200"}`
+* event_key "log"
 * sent as: `GET / HTTP/1.1 200`
 
 ### line_breaker
