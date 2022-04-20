@@ -11,7 +11,7 @@ module Fluent
 
     config_param :host, :string
     config_param :port, :integer
-    config_param :token, :string
+    config_param :token, :string, secret: true
 
     # for metadata
     config_param :default_host, :string, default: nil
