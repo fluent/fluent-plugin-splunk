@@ -35,7 +35,7 @@ case "$COMMAND" in
     docker build --no-cache=true -t ${IMAGE_LOCAL} test/Dockerfiles/enterprise/${VERSION}
     ;;
   *)
-    echo "Unkowon command"
+    echo "Unknown command"
     exit 1
     ;;
 esac
