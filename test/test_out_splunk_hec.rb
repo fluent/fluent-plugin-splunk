@@ -430,6 +430,20 @@ class SplunkHECOutputTest < Test::Unit::TestCase
           assert_equal(event, JSON.parse(result['result']['_raw']))
         end
 
+        test 'non raw with event_key' do
+          config = merge_config(test_config[:default_config_no_ack], %[
+            event_key log
+          ])
+          d = create_driver(config)
+          event = {'log' => SecureRandom.hex}
+          time = Time.now.to_i - 100
+          d.emit(event, time)
+          d.run
+          result = get_events(test_config[:query_port], "source=\"#{DEFAULT_SOURCE_FOR_NO_ACK}\"")[0]
+          assert_equal(time, result['result']['_time'].to_i)
+          assert_equal(event['log'], result['result']['_raw'])
+        end
+
         # Backward compability (sourcetype) test
         test 'source_type = sourcetype_test' do
           config = merge_config(test_config[:default_config_no_ack], %[
