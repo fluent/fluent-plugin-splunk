@@ -1,3 +1,8 @@
+# Release v0.10.3 - 2026/04/30
+
+* out_splunk_hec: mask token value as secret (#43)
+* out_splunk_hec: Discard empty events - Splunk hec gives an error if the string is empty. This can lead to a retry loop. (#38)
+
 # Release v0.10.2 - 2020/03/04
 
 * out_splunk_hec: Add `auto_generate_channel` parameter
