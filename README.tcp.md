@@ -46,7 +46,9 @@
   ca_file /path/to/ca.pem
 
   # buffered output parameter
-  flush_interval 10s
+  <buffer>
+    flush_interval 10s
+  </buffer>
 </match>
 ```
 
@@ -70,7 +72,9 @@ This example shows json format.
   ca_file /path/to/ca.pem
 
   # flush
-  flush_interval 10s
+  <buffer>
+    flush_interval 10s
+  </buffer>
 </match>
 ```
 

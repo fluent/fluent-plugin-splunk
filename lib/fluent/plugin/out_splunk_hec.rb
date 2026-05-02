@@ -1,13 +1,16 @@
-require 'fluent/output'
+require 'fluent/plugin/output'
 require 'httpclient'
 require 'json'
+require 'yajl'
 require 'securerandom'
 
 # http://dev.splunk.com/view/event-collector/SP-CAAAE6P
 
-module Fluent
-  class SplunkHECOutput < ObjectBufferedOutput
+module Fluent::Plugin
+  class SplunkHECOutput < Output
     Fluent::Plugin.register_output('splunk_hec', self)
+
+    helpers :compat_parameters
 
     config_param :host, :string
     config_param :port, :integer
@@ -52,6 +55,8 @@ module Fluent
     config_param :client_key_pass, :string, default: nil
 
     def configure(conf)
+      compat_parameters_convert(conf, :buffer)
+
       super
 
       if @channel && @auto_generate_channel 
@@ -60,10 +65,10 @@ module Fluent
 
       @channel = SecureRandom.uuid if @auto_generate_channel
 
-      raise ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
-      raise ConfigError, "'ack_interval' parameter must be a non negative integer" if @use_ack && @ack_interval < 0
-      raise ConfigError, "'event_key' parameter is required when 'raw' is true" if @raw && !@event_key
-      raise ConfigError, "'channel' parameter is required when 'raw' is true" if @raw && !@channel
+      raise Fluent::ConfigError, "'channel' parameter is required when 'use_ack' is true" if @use_ack && !@channel
+      raise Fluent::ConfigError, "'ack_interval' parameter must be a non negative integer" if @use_ack && @ack_interval < 0
+      raise Fluent::ConfigError, "'event_key' parameter is required when 'raw' is true" if @raw && !@event_key
+      raise Fluent::ConfigError, "'channel' parameter is required when 'raw' is true" if @raw && !@channel
       
       @default_sourcetype = @sourcetype if @sourcetype && !@default_sourcetype
 
@@ -90,7 +95,7 @@ module Fluent
       super
     end
 
-    def write_objects(_tag, chunk)
+    def write(chunk)
       return if chunk.empty?
 
       payload = ''
@@ -119,7 +124,7 @@ module Fluent
     def format_event(time, record)
       msg = {'event' => record}
       if @use_fluentd_time
-        msg['time'] = time.respond_to?('to_f') ? time.to_f : time
+        msg['time'] = time.to_f
       end
 
       # metadata

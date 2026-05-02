@@ -1,5 +1,5 @@
-require 'fluent/output'
-require 'fluent/formatter'
+require 'fluent/plugin/output'
+require 'fluent/time'
 require 'fluent/config/error'
 require 'socket'
 require 'openssl'
@@ -7,9 +7,11 @@ require 'json'
 
 # http://dev.splunk.com/view/event-collector/SP-CAAAE6P
 
-module Fluent
-  class SplunkTCPOutput < ObjectBufferedOutput
+module Fluent::Plugin
+  class SplunkTCPOutput < Output
     Fluent::Plugin.register_output('splunk_tcp', self)
+
+    helpers :compat_parameters
 
     config_param :host, :string
     config_param :port, :integer
@@ -43,11 +45,13 @@ module Fluent
     end
 
     def configure(conf)
+      compat_parameters_convert(conf, :buffer)
+
       super
 
       case @time_format
       when 'unixtime'
-        @time_formatter = lambda {|time| time }
+        @time_formatter = lambda {|time| time.to_i }
       else
         @timef = Fluent::TimeFormatter.new(@time_format, @localtime)
         @time_formatter = lambda {|time| @timef.format(time) }
@@ -68,11 +72,11 @@ module Fluent
         end
       when 'raw'
         unless @event_key
-          raise ConfigError, "'event_key' option is required for format 'raw'"
+          raise Fluent::ConfigError, "'event_key' option is required for format 'raw'"
         end
         @formatter = lambda {|_time, record| record[@event_key] || '' }
       else
-        raise ConfigError, "invalid 'format' option: #{@format}"
+        raise Fluent::ConfigError, "invalid 'format' option: #{@format}"
       end
     end
 
@@ -88,7 +92,7 @@ module Fluent
       super
     end
 
-    def write_objects(_tag, chunk)
+    def write(chunk)
       return if chunk.empty?
 
       payload = ''
